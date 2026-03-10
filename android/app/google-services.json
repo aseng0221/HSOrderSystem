@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "997148333257",
+    "project_id": "hsordersystem",
+    "storage_bucket": "hsordersystem.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:997148333257:android:d5670e682d4438bf14a918",
+        "android_client_info": {
+          "package_name": "com.hsordersystem"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAj_4f317x0FjX6BkZMlTzqkQrsJhlWHSs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
