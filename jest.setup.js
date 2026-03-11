@@ -24,7 +24,7 @@ jest.mock('@react-native-firebase/firestore', () => {
   const firestoreMock = {
     collection: jest.fn(() => ({
       doc: jest.fn(() => ({
-        get: jest.fn(() => Promise.resolve({ exists: true, data: () => ({}) })),
+        get: jest.fn(() => Promise.resolve({exists: true, data: () => ({})})),
         set: jest.fn(),
         update: jest.fn(),
       })),
@@ -63,7 +63,7 @@ jest.mock('react-native-geolocation-service', () => ({
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
 jest.mock('fiuu-mobile-xdk-reactnative', () => ({

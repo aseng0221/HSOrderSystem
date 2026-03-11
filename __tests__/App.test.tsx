@@ -11,17 +11,17 @@ import {it, jest} from '@jest/globals';
 
 jest.mock('@stripe/stripe-react-native', () => {
   return {
-    StripeProvider: ({ children }: any) => children,
+    StripeProvider: ({children}: any) => children,
     useStripe: () => ({
-      initPaymentSheet: jest.fn().mockResolvedValue({ error: null }),
-      presentPaymentSheet: jest.fn().mockResolvedValue({ error: null }),
+      initPaymentSheet: jest.fn().mockResolvedValue({error: null}),
+      presentPaymentSheet: jest.fn().mockResolvedValue({error: null}),
     }),
   };
 });
 
 jest.mock('../App', () => {
   const React = require('react');
-  const { View } = require('react-native');
+  const {View} = require('react-native');
   return function MockApp() {
     return <View />;
   };

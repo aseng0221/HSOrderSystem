@@ -14,12 +14,25 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useStripe} from '@stripe/stripe-react-native';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
+import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
+import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
+import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
+import {useOrder} from '../context/OrderContext';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, clearCart} = useCart();
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  const {createOrder} = useOrderHistoryViewModel();
+  const {addPointsForPurchase} = useRewardsViewModel();
+  const {user} = useAuthViewModel();
+  const {orderMode, selectedBranch, selectedAddress} = useOrder();
 
   const handleCheckout = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to proceed with checkout.');
+      navigation.navigate('Login');
+      return;
+    }
     // ---- Fiuu Implementation (Commented out as requested) ----
     /*
     const paymentDetails = {
@@ -80,13 +93,32 @@ const CartScreen = ({navigation}: any) => {
         },
       });
 
-      if (initError) {
-        Alert.alert(
-          'Error',
-          'Failed to initialize payment sheet. Since we are using dummy keys, we will pretend it worked.',
-        );
+      const finalizeOrder = async () => {
+        // Save order to history
+        await createOrder({
+          userId: user.uid,
+          items: cart,
+          totalAmount: totalPrice,
+          status: 'pending',
+          orderMode: orderMode || 'pickup',
+          branchId: selectedBranch?.id,
+          addressId: selectedAddress?.id,
+        });
+
+        // Add reward points
+        await addPointsForPurchase(totalPrice);
+
+        Alert.alert('Success', 'Your order is confirmed!');
         clearCart();
         navigation.navigate('Home');
+      };
+
+      if (initError) {
+        Alert.alert(
+          'Mock Success',
+          'Failed to initialize payment sheet. Since we are using dummy keys, we will pretend it worked and finalize the order.',
+        );
+        await finalizeOrder();
         return;
       }
 
@@ -95,9 +127,7 @@ const CartScreen = ({navigation}: any) => {
       if (presentError) {
         Alert.alert(`Error code: ${presentError.code}`, presentError.message);
       } else {
-        Alert.alert('Success', 'Your order is confirmed!');
-        clearCart();
-        navigation.navigate('Home');
+        await finalizeOrder();
       }
     } catch (e) {
       console.log('Error with Stripe checkout', e);
