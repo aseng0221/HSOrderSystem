@@ -117,6 +117,95 @@ export const seedMenuData = async () => {
   }
 };
 
+export const seedMockOrders = async (userId: string) => {
+  try {
+    const ordersCol = collection(db, 'orders');
+
+    // Create some dates for the mock orders
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const mockOrders = [
+      {
+        userId,
+        status: 'completed',
+        orderMode: 'pickup',
+        totalAmount: 15.8,
+        createdAt: now.getTime(),
+        items: [
+          {
+            id: 'mock-item-1',
+            product: {id: 'prod-1', name: 'Signature Latté', price: 10.9},
+            quantity: 1,
+            unitPrice: 10.9,
+            selectedOptions: {Size: ['Regular']},
+          },
+          {
+            id: 'mock-item-2',
+            product: {id: 'prod-2', name: 'Grape Americano', price: 4.9},
+            quantity: 1,
+            unitPrice: 4.9,
+            selectedOptions: {Ice: ['Normal']},
+          },
+        ],
+      },
+      {
+        userId,
+        status: 'completed',
+        orderMode: 'delivery',
+        totalAmount: 25.0,
+        createdAt: yesterday.getTime(),
+        items: [
+          {
+            id: 'mock-item-3',
+            product: {id: 'prod-3', name: 'Burnt Cheese Cake', price: 15.0},
+            quantity: 1,
+            unitPrice: 15.0,
+            selectedOptions: {},
+          },
+          {
+            id: 'mock-item-4',
+            product: {
+              id: 'prod-4',
+              name: 'Iced Buttercrème Latté',
+              price: 10.0,
+            },
+            quantity: 1,
+            unitPrice: 10.0,
+            selectedOptions: {Sugar: ['Less Sugar']},
+          },
+        ],
+      },
+      {
+        userId,
+        status: 'pending',
+        orderMode: 'pickup',
+        totalAmount: 13.9,
+        createdAt: lastWeek.getTime(),
+        items: [
+          {
+            id: 'mock-item-5',
+            product: {id: 'prod-5', name: 'CEO Chocolate', price: 13.9},
+            quantity: 1,
+            unitPrice: 13.9,
+            selectedOptions: {},
+          },
+        ],
+      },
+    ];
+
+    for (const order of mockOrders) {
+      await addDoc(ordersCol, order);
+    }
+
+    return {success: true};
+  } catch (error) {
+    console.error('Error seeding mock orders:', error);
+    return {success: false, error};
+  }
+};
+
 export const seedBranchesData = async () => {
   try {
     const branchesCol = collection(db, 'branches');
