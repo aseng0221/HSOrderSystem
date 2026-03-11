@@ -27,8 +27,30 @@ const OTPScreen = ({navigation, route}: any) => {
     const interval = setInterval(() => {
       setTimer(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+
+    // Listen for auth state changes (handles Android auto-verification)
+    const unsubscribe = auth().onAuthStateChanged(async user => {
+      if (user && !loading) {
+        setLoading(true);
+        try {
+          await saveUserPhone(phoneNumber);
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'MainTabs'}],
+          });
+        } catch (error) {
+          console.error('Auto-verify error:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
+  }, [navigation, phoneNumber, loading]);
 
   const formatTimer = (seconds: number) => {
     const min = Math.floor(seconds / 60);
