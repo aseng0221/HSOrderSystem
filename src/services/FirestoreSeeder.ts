@@ -1,6 +1,11 @@
-import { collection, doc, setDoc, addDoc } from '@react-native-firebase/firestore';
-import { db } from './firebase';
-import { MOCK_BRANCHES } from '../constants/branches';
+import {
+  collection,
+  doc,
+  setDoc,
+  addDoc,
+} from '@react-native-firebase/firestore';
+import {db} from './firebase';
+import {MOCK_BRANCHES} from '../constants/branches';
 
 interface ProductIngredient {
   id: string;
@@ -27,13 +32,13 @@ export const seedMenuData = async () => {
 
     // 1. Add Categories
     const categories = [
-      { id: 'lepak', name: 'Lepak & Moreh', icon: 'coffee', order: 1 },
-      { id: 'tea', name: 'ZUS Tea Series', icon: 'tea', order: 2 },
-      { id: 'bb', name: 'ZUS BB', icon: 'bottle-wine-outline', order: 3 },
-      { id: 'grape', name: 'Grape Series', icon: 'fruit-grapes', order: 4 },
-      { id: 'meowtcha', name: 'Meowtcha Series', icon: 'cat', order: 5 },
-      { id: 'picks', name: 'Top Picks', icon: 'heart-outline', order: 6 },
-      { id: 'ceo', name: 'CEO Series', icon: 'account-tie-outline', order: 7 },
+      {id: 'lepak', name: 'Lepak & Moreh', icon: 'coffee', order: 1},
+      {id: 'tea', name: 'ZUS Tea Series', icon: 'tea', order: 2},
+      {id: 'bb', name: 'ZUS BB', icon: 'bottle-wine-outline', order: 3},
+      {id: 'grape', name: 'Grape Series', icon: 'fruit-grapes', order: 4},
+      {id: 'meowtcha', name: 'Meowtcha Series', icon: 'cat', order: 5},
+      {id: 'picks', name: 'Top Picks', icon: 'heart-outline', order: 6},
+      {id: 'ceo', name: 'CEO Series', icon: 'account-tie-outline', order: 7},
     ];
 
     for (const cat of categories) {
@@ -88,13 +93,14 @@ export const seedMenuData = async () => {
         price: 'RM 4.90',
         order: 1,
         image: 'https://img.zuscoffee.com/zuscoffee/menu/Grape-Americano.png',
-        description: 'Say hello to your new favourite Americano! Bold espresso meets sweet, juicy grape made from real grape with 90% ...',
+        description:
+          'Say hello to your new favourite Americano! Bold espresso meets sweet, juicy grape made from real grape with 90% ...',
         nutritionInfo: '90% real grape',
         ingredients: [
-          { id: 'esp', name: 'Espresso' },
-          { id: 'grp', name: 'Grape' },
-          { id: 'boba', name: 'Crystal Boba' },
-          { id: 'lem', name: 'Lemon' },
+          {id: 'esp', name: 'Espresso'},
+          {id: 'grp', name: 'Grape'},
+          {id: 'boba', name: 'Crystal Boba'},
+          {id: 'lem', name: 'Lemon'},
         ],
         globalOptions: [], // Will be filled via Admin app
       },
@@ -104,10 +110,10 @@ export const seedMenuData = async () => {
       await addDoc(productsCol, prod);
     }
 
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.error('Error seeding data:', error);
-    return { success: false, error };
+    return {success: false, error};
   }
 };
 
@@ -117,9 +123,9 @@ export const seedBranchesData = async () => {
     for (const branch of MOCK_BRANCHES) {
       await setDoc(doc(db, 'branches', branch.id), branch);
     }
-    return { success: true };
+    return {success: true};
   } catch (error) {
     console.error('Error seeding branches:', error);
-    return { success: false, error };
+    return {success: false, error};
   }
 };

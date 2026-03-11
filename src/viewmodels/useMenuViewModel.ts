@@ -1,11 +1,11 @@
 import {useState, useEffect} from 'react';
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  onSnapshot 
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
 } from '@react-native-firebase/firestore';
-import { db } from '../services/firebase';
+import {db} from '../services/firebase';
 
 export interface Category {
   id: string;
@@ -57,12 +57,15 @@ export const useMenuViewModel = () => {
 
   useEffect(() => {
     setLoading(true);
-    
+
     // Subscribe to categories
-    const categoriesQuery = query(collection(db, 'categories'), orderBy('order', 'asc'));
+    const categoriesQuery = query(
+      collection(db, 'categories'),
+      orderBy('order', 'asc'),
+    );
     const unsubscribeCategories = onSnapshot(
       categoriesQuery,
-      (querySnapshot) => {
+      querySnapshot => {
         const catList: Category[] = [];
         querySnapshot.forEach((doc: any) => {
           catList.push({
@@ -72,17 +75,17 @@ export const useMenuViewModel = () => {
         });
         setCategories(catList);
       },
-      (err) => {
+      err => {
         console.error('Error fetching categories:', err);
         setError('Failed to load categories');
-      }
+      },
     );
 
     // Subscribe to products
     const productsCollection = collection(db, 'products');
     const unsubscribeProducts = onSnapshot(
       productsCollection,
-      (querySnapshot) => {
+      querySnapshot => {
         const prodList: Product[] = [];
         querySnapshot.forEach((doc: any) => {
           prodList.push({
@@ -90,7 +93,7 @@ export const useMenuViewModel = () => {
             ...doc.data(),
           } as Product);
         });
-        
+
         // Local sorting: order (asc), then name (asc)
         const sortedProds = prodList.sort((a, b) => {
           if (a.order !== b.order) {
@@ -98,22 +101,22 @@ export const useMenuViewModel = () => {
           }
           return a.name.localeCompare(b.name);
         });
-        
+
         setProducts(sortedProds);
         setLoading(false);
       },
-      (err) => {
+      err => {
         console.error('Error fetching products:', err);
         setError('Failed to load products');
         setLoading(false);
-      }
+      },
     );
 
     // Subscribe to global options
     const globalOptionsQuery = collection(db, 'global_options');
     const unsubscribeGlobal = onSnapshot(
       globalOptionsQuery,
-      (querySnapshot) => {
+      querySnapshot => {
         const optionList: ProductOptionGroup[] = [];
         querySnapshot.forEach((doc: any) => {
           optionList.push({
@@ -123,9 +126,9 @@ export const useMenuViewModel = () => {
         });
         setGlobalOptions(optionList);
       },
-      (err) => {
+      err => {
         console.error('Error fetching global options:', err);
-      }
+      },
     );
 
     return () => {

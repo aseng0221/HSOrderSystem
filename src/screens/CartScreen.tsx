@@ -7,13 +7,54 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import molpay from 'fiuu-mobile-xdk-reactnative';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
 
 const CartScreen = ({navigation}: any) => {
-  const {cart, totalPrice, updateQuantity} = useCart();
+  const {cart, totalPrice, updateQuantity, clearCart} = useCart();
+
+  const handleCheckout = () => {
+    const paymentDetails = {
+      // TODO: Replace with actual Fiuu credentials
+      mp_username: 'username',
+      mp_password: 'password',
+      mp_merchant_ID: 'merchantid',
+      mp_app_name: 'appname',
+      mp_verification_key: 'vkey123',
+      mp_amount: totalPrice.toFixed(2),
+      mp_order_ID: 'ORDER' + Date.now(),
+      mp_currency: 'MYR',
+      mp_country: 'MY',
+      mp_channel: 'multi',
+      mp_bill_description: 'Order from HSOrderSystem',
+      mp_bill_name: 'Guest User',
+      mp_bill_email: 'guest@example.com',
+      mp_bill_mobile: '+60123456789',
+    };
+
+    molpay.startMolpay(paymentDetails, (data: string) => {
+      try {
+        const result = JSON.parse(data);
+        if (result.status_code === '00') {
+          Alert.alert('Success', 'Payment completed successfully');
+          clearCart();
+          navigation.navigate('Home');
+        } else if (result.status_code === '11') {
+          Alert.alert('Failed', 'Payment failed');
+        } else if (result.status_code === '22') {
+          Alert.alert('Pending', 'Payment is pending');
+          clearCart();
+          navigation.navigate('Home');
+        }
+      } catch (e) {
+        console.log('Error parsing payment result', e);
+      }
+    });
+  };
 
   const renderItem = ({item}: any) => (
     <View style={styles.cartItem}>
@@ -82,7 +123,7 @@ const CartScreen = ({navigation}: any) => {
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalAmount}>$ {totalPrice.toFixed(2)}</Text>
           </View>
-          <TouchableOpacity style={styles.checkoutBtn}>
+          <TouchableOpacity style={styles.checkoutBtn} onPress={handleCheckout}>
             <Text style={styles.checkoutBtnText}>Checkout</Text>
           </TouchableOpacity>
         </View>
