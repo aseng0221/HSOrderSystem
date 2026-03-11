@@ -10,14 +10,18 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import molpay from 'fiuu-mobile-xdk-reactnative';
+// import molpay from 'fiuu-mobile-xdk-reactnative';
+import {useStripe} from '@stripe/stripe-react-native';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, clearCart} = useCart();
+  const {initPaymentSheet, presentPaymentSheet} = useStripe();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    // ---- Fiuu Implementation (Commented out as requested) ----
+    /*
     const paymentDetails = {
       // TODO: Replace with actual Fiuu credentials
       mp_username: 'username',
@@ -54,6 +58,50 @@ const CartScreen = ({navigation}: any) => {
         console.log('Error parsing payment result', e);
       }
     });
+    */
+
+    // ---- Temporary Stripe Implementation ----
+    try {
+      // In a real application, you would fetch these from your backend
+      const dummyPaymentIntent = 'pi_12345_secret_67890';
+      const dummyEphemeralKey = 'ek_12345';
+      const dummyCustomer = 'cus_12345';
+
+      const {error: initError} = await initPaymentSheet({
+        merchantDisplayName: 'HSOrderSystem',
+        customerId: dummyCustomer,
+        customerEphemeralKeySecret: dummyEphemeralKey,
+        paymentIntentClientSecret: dummyPaymentIntent,
+        // Set `allowsDelayedPaymentMethods` to true if your business can handle payment
+        //methods that complete payment after a delay, like SEPA Debit and Sofort.
+        allowsDelayedPaymentMethods: true,
+        defaultBillingDetails: {
+          name: 'Guest User',
+        },
+      });
+
+      if (initError) {
+        Alert.alert(
+          'Error',
+          'Failed to initialize payment sheet. Since we are using dummy keys, we will pretend it worked.',
+        );
+        clearCart();
+        navigation.navigate('Home');
+        return;
+      }
+
+      const {error: presentError} = await presentPaymentSheet();
+
+      if (presentError) {
+        Alert.alert(`Error code: ${presentError.code}`, presentError.message);
+      } else {
+        Alert.alert('Success', 'Your order is confirmed!');
+        clearCart();
+        navigation.navigate('Home');
+      }
+    } catch (e) {
+      console.log('Error with Stripe checkout', e);
+    }
   };
 
   const renderItem = ({item}: any) => (
