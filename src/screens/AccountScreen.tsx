@@ -14,7 +14,7 @@ import {AuthGuardView} from '../components/AuthGuardView';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrder} from '../context/OrderContext';
 
-import {seedMenuData} from '../services/FirestoreSeeder';
+import {seedMenuData, seedMockOrders} from '../services/FirestoreSeeder';
 import {Alert, ActivityIndicator} from 'react-native';
 
 import {clearStoredData} from '../utils/storage';
@@ -23,6 +23,7 @@ const AccountScreen = ({navigation}: any) => {
   const {isAuthenticated, user, logout} = useAuthViewModel();
   const {resetOrder} = useOrder();
   const [isSeeding, setIsSeeding] = React.useState(false);
+  const [isSeedingOrders, setIsSeedingOrders] = React.useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -42,6 +43,20 @@ const AccountScreen = ({navigation}: any) => {
       Alert.alert('Success', 'Sample menu data has been added to Firestore!');
     } else {
       Alert.alert('Error', 'Failed to seed data. Check console for details.');
+    }
+  };
+
+  const handleSeedOrders = async () => {
+    if (!user) {
+      return;
+    }
+    setIsSeedingOrders(true);
+    const result = await seedMockOrders(user.uid);
+    setIsSeedingOrders(false);
+    if (result.success) {
+      Alert.alert('Success', 'Sample orders have been added to Firestore!');
+    } else {
+      Alert.alert('Error', 'Failed to seed orders. Check console for details.');
     }
   };
 
@@ -69,6 +84,17 @@ const AccountScreen = ({navigation}: any) => {
               <ActivityIndicator color={Colors.primary} />
             ) : (
               <Text style={styles.seedButtonText}>Seed Sample Menu Data</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.seedButton}
+            onPress={handleSeedOrders}
+            disabled={isSeedingOrders}>
+            {isSeedingOrders ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : (
+              <Text style={styles.seedButtonText}>Seed Mock Orders</Text>
             )}
           </TouchableOpacity>
         </View>

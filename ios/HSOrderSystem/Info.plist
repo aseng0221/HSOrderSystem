@@ -44,6 +44,10 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Payment images</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Payment images</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
