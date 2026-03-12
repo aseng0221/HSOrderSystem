@@ -10,8 +10,8 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-// import molpay from 'fiuu-mobile-xdk-reactnative';
-import {useStripe} from '@stripe/stripe-react-native';
+import molpay from 'fiuu-mobile-xdk-reactnative';
+// import {useStripe} from '@stripe/stripe-react-native';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
@@ -21,7 +21,7 @@ import {useOrder} from '../context/OrderContext';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, clearCart} = useCart();
-  const {initPaymentSheet, presentPaymentSheet} = useStripe();
+  // const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {createOrder} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {user} = useAuthViewModel();
@@ -33,47 +33,65 @@ const CartScreen = ({navigation}: any) => {
       navigation.navigate('Login');
       return;
     }
-    // ---- Fiuu Implementation (Commented out as requested) ----
-    /*
+
+    const finalizeOrder = async () => {
+      // Save order to history
+      await createOrder({
+        userId: user.uid,
+        items: cart,
+        totalAmount: totalPrice,
+        status: 'pending',
+        orderMode: orderMode || 'pickup',
+        branchId: selectedBranch?.id,
+        addressId: selectedAddress?.id,
+      });
+
+      // Add reward points
+      await addPointsForPurchase(totalPrice);
+
+      Alert.alert('Success', 'Your order is confirmed!');
+      clearCart();
+      navigation.navigate('Home');
+    };
+
+    // ---- Fiuu Implementation ----
     const paymentDetails = {
       // TODO: Replace with actual Fiuu credentials
-      mp_username: 'username',
-      mp_password: 'password',
-      mp_merchant_ID: 'merchantid',
-      mp_app_name: 'appname',
-      mp_verification_key: 'vkey123',
+      mp_username: 'username', // replace with Fiuu username
+      mp_password: 'password', // replace with Fiuu password
+      mp_merchant_ID: 'merchantid', // replace with Fiuu Merchant ID
+      mp_app_name: 'appname', // replace with Fiuu app name
+      mp_verification_key: 'vkey123', // replace with Fiuu verification key
       mp_amount: totalPrice.toFixed(2),
       mp_order_ID: 'ORDER' + Date.now(),
       mp_currency: 'MYR',
       mp_country: 'MY',
       mp_channel: 'multi',
       mp_bill_description: 'Order from HSOrderSystem',
-      mp_bill_name: 'Guest User',
-      mp_bill_email: 'guest@example.com',
-      mp_bill_mobile: '+60123456789',
+      mp_bill_name: user?.displayName || 'Guest User',
+      mp_bill_email: user?.email || 'guest@example.com',
+      mp_bill_mobile: user?.phoneNumber || '+60123456789',
     };
 
-    molpay.startMolpay(paymentDetails, (data: string) => {
+    molpay.startMolpay(paymentDetails, async (data: string) => {
       try {
         const result = JSON.parse(data);
         if (result.status_code === '00') {
-          Alert.alert('Success', 'Payment completed successfully');
-          clearCart();
-          navigation.navigate('Home');
+          // Payment Success
+          await finalizeOrder();
         } else if (result.status_code === '11') {
-          Alert.alert('Failed', 'Payment failed');
+          Alert.alert('Failed', 'Payment failed or cancelled.');
         } else if (result.status_code === '22') {
-          Alert.alert('Pending', 'Payment is pending');
-          clearCart();
-          navigation.navigate('Home');
+          Alert.alert('Pending', 'Payment is pending.');
+          await finalizeOrder(); // Optionally finalize if pending is acceptable
         }
       } catch (e) {
         console.log('Error parsing payment result', e);
       }
     });
-    */
 
-    // ---- Temporary Stripe Implementation ----
+    // ---- Temporary Stripe Implementation (Disabled) ----
+    /*
     try {
       // In a real application, you would fetch these from your backend
       const dummyPaymentIntent = 'pi_12345_secret_67890';
@@ -92,26 +110,6 @@ const CartScreen = ({navigation}: any) => {
           name: 'Guest User',
         },
       });
-
-      const finalizeOrder = async () => {
-        // Save order to history
-        await createOrder({
-          userId: user.uid,
-          items: cart,
-          totalAmount: totalPrice,
-          status: 'pending',
-          orderMode: orderMode || 'pickup',
-          branchId: selectedBranch?.id,
-          addressId: selectedAddress?.id,
-        });
-
-        // Add reward points
-        await addPointsForPurchase(totalPrice);
-
-        Alert.alert('Success', 'Your order is confirmed!');
-        clearCart();
-        navigation.navigate('Home');
-      };
 
       if (initError) {
         Alert.alert(
@@ -132,6 +130,7 @@ const CartScreen = ({navigation}: any) => {
     } catch (e) {
       console.log('Error with Stripe checkout', e);
     }
+    */
   };
 
   const renderItem = ({item}: any) => (
