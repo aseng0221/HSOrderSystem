@@ -94,18 +94,25 @@ const HomeScreen = ({navigation}: any) => {
                 <Text style={styles.orderDate}>
                   {formatDate(order.createdAt)}
                 </Text>
-                <Text
-                  style={[
-                    styles.orderStatus,
-                    {
-                      color:
-                        order.status === 'completed'
-                          ? Colors.primary
-                          : Colors.textSecondary,
-                    },
-                  ]}>
-                  {order.status.toUpperCase()}
-                </Text>
+                <View style={styles.statusContainer}>
+                  <Text
+                    style={[
+                      styles.orderStatus,
+                      {
+                        color:
+                          order.status === 'completed' ||
+                          order.status === 'ready_to_pickup'
+                            ? Colors.primary
+                            : Colors.textSecondary,
+                      },
+                    ]}>
+                    {order.status.replace(/_/g, ' ').toUpperCase()}
+                  </Text>
+                  {order.paymentMethod === 'cash' &&
+                    order.paymentStatus === 'unpaid' && (
+                      <Text style={styles.unpaidBadge}>UNPAID (CASH)</Text>
+                    )}
+                </View>
               </View>
               <Text style={styles.orderAmount}>
                 RM {order.totalAmount.toFixed(2)}
@@ -201,9 +208,18 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontWeight: '600',
   },
+  statusContainer: {
+    alignItems: 'flex-end',
+  },
   orderStatus: {
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  unpaidBadge: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: Colors.error || '#FF3B30',
+    marginTop: 2,
   },
   orderAmount: {
     fontSize: 16,

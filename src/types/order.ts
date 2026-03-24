@@ -13,9 +13,17 @@ export interface Order {
   userId: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status:
+    | 'pending'
+    | 'processing'
+    | 'preparing'
+    | 'ready_to_pickup'
+    | 'completed'
+    | 'cancelled';
   createdAt: number; // timestamp
   orderMode: 'pickup' | 'delivery';
+  paymentMethod: 'cash' | 'online';
+  paymentStatus: 'unpaid' | 'paid';
   branchId?: string;
   addressId?: string;
 }

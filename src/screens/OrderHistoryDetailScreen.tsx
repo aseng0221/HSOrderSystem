@@ -54,8 +54,24 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
         <View style={styles.summaryCard}>
           <Text style={styles.orderId}>Order ID: {order.id}</Text>
           <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>{order.status.toUpperCase()}</Text>
+          <View style={styles.badgesContainer}>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>
+                {order.status.replace(/_/g, ' ').toUpperCase()}
+              </Text>
+            </View>
+            {order.paymentMethod === 'cash' &&
+              order.paymentStatus === 'unpaid' && (
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {backgroundColor: Colors.error + '20'},
+                  ]}>
+                  <Text style={[styles.statusText, {color: Colors.error}]}>
+                    UNPAID (CASH)
+                  </Text>
+                </View>
+              )}
           </View>
           <Text style={styles.orderMode}>
             Mode: {order.orderMode.toUpperCase()}
@@ -120,13 +136,17 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 12,
   },
+  badgesContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    gap: 8,
+  },
   statusBadge: {
     backgroundColor: Colors.backgroundLight,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     alignSelf: 'flex-start',
-    marginBottom: 8,
   },
   statusText: {
     color: Colors.primary,
