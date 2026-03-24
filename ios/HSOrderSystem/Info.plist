@@ -28,6 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>app-1-997148333257-ios-ff63d66c5cc02ae514a918</string>
+				<string>org.reactjs.native.example.HSOrderSystem</string>
 			</array>
 		</dict>
 	</array>
@@ -38,12 +39,12 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>This app needs access to your location to find nearby branches.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Payment images</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
@@ -69,10 +70,6 @@
 		<string>Octicons.ttf</string>
 		<string>Zocial.ttf</string>
 		<string>Fontisto.ttf</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

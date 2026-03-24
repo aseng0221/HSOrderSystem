@@ -9,8 +9,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import auth, {signInWithPhoneNumber} from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBiometrics from 'react-native-biometrics';
@@ -70,10 +72,14 @@ const LoginScreen = ({navigation}: any) => {
         ? phoneNumber
         : `+60${phoneNumber}`;
 
-      const confirmation = await signInWithPhoneNumber(auth(), formattedNumber);
+      console.log('[LoginScreen] Sending OTP to:', formattedNumber);
+      const confirmation = await auth().signInWithPhoneNumber(formattedNumber);
+      console.log('[LoginScreen] OTP sent successfully, navigating to OTP screen');
       navigation.navigate('OTP', {confirmation, phoneNumber: formattedNumber});
     } catch (error: any) {
-      console.error(error);
+      console.log('[LoginScreen] Error sending OTP:', error);
+      console.log('[LoginScreen] Error code:', error.code);
+      console.log('[LoginScreen] Error message:', error.message);
       Alert.alert(
         'Error',
         error.message || 'Failed to send OTP. Please try again.',
@@ -161,31 +167,33 @@ const LoginScreen = ({navigation}: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}>
-        <View style={styles.content}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.closeButton}>
-            <Icon name="close" size={24} color={Colors.text} />
-          </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flex}>
+          <View style={styles.content}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeButton}>
+              <Icon name="close" size={24} color={Colors.text} />
+            </TouchableOpacity>
 
-          {isBiometricView ? renderBiometricView() : renderDefaultView()}
+            {isBiometricView ? renderBiometricView() : renderDefaultView()}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By logging in or registering, you agree to our{' '}
-              <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-              <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
-              <Text style={styles.linkText}>
-                Personal Data Protection Policy
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By logging in or registering, you agree to our{' '}
+                <Text style={styles.linkText}>Terms of Service</Text>,{' '}
+                <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
+                <Text style={styles.linkText}>
+                  Personal Data Protection Policy
+                </Text>
               </Text>
-            </Text>
-            <Text style={styles.versionText}>Version 5.5.19</Text>
+              <Text style={styles.versionText}>Version 5.5.19</Text>
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };

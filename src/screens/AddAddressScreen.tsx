@@ -9,12 +9,14 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
 import {MIRI_LOCATION} from '../constants/branches';
 import {getCurrentLocation} from '../utils/location';
 
@@ -126,127 +128,132 @@ const AddAddressScreen = ({navigation, route}: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={30} color={Colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {editAddress ? 'Edit Address' : 'Add New Address'}
-        </Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.form}>
-        <Text style={styles.label}>Address Nickname (e.g. Home, Office)</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Home / Office / Mom's House"
-          value={name}
-          onChangeText={setName}
-        />
-
-        <Text style={styles.label}>Street Address</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Unit, House No, Street name"
-          value={street}
-          onChangeText={setStreet}
-          multiline
-        />
-
-        <View style={styles.row}>
-          <View style={styles.flex1}>
-            <Text style={styles.label}>City</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="City"
-              value={city}
-              onChangeText={setCity}
-            />
-          </View>
-          <View style={[styles.flex1, {marginLeft: Spacing.md}]}>
-            <Text style={styles.label}>Postal Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Postal Code"
-              value={postalCode}
-              onChangeText={setPostalCode}
-              keyboardType="number-pad"
-            />
-          </View>
-        </View>
-
-        <Text style={styles.label}>State</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="State"
-          value={state}
-          onChangeText={setState}
-        />
-
-        <Text style={styles.label}>Country</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Country"
-          value={country}
-          onChangeText={setCountry}
-          editable={false}
-        />
-
-        <Text style={styles.label}>Pin Location on Map</Text>
-        <View style={styles.mapWrapper}>
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              region={region}
-              onRegionChangeComplete={setRegion}
-              rotateEnabled={false}
-              pitchEnabled={false}
-              onPress={e => {
-                setLatitude(e.nativeEvent.coordinate.latitude.toString());
-                setLongitude(e.nativeEvent.coordinate.longitude.toString());
-              }}>
-              <Marker
-                coordinate={{
-                  latitude: parseFloat(latitude),
-                  longitude: parseFloat(longitude),
-                }}
-                draggable
-                onDragEnd={e => {
-                  setLatitude(e.nativeEvent.coordinate.latitude.toString());
-                  setLongitude(e.nativeEvent.coordinate.longitude.toString());
-                }}
-              />
-            </MapView>
-          </View>
-
-          <View style={styles.mapControls}>
-            <TouchableOpacity style={styles.controlBtn} onPress={handleZoomIn}>
-              <Icon name="plus" size={20} color={Colors.text} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={styles.flex1}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon name="chevron-left" size={30} color={Colors.primary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlBtn} onPress={handleZoomOut}>
-              <Icon name="minus" size={20} color={Colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.controlBtn, {marginTop: Spacing.sm}]}
-              onPress={handleMyLocation}>
-              <Icon name="crosshairs-gps" size={20} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color={Colors.white} />
-          ) : (
-            <Text style={styles.saveBtnText}>
-              {editAddress ? 'Update Address' : 'Save Address'}
+            <Text style={styles.headerTitle}>
+              {editAddress ? 'Edit Address' : 'Add New Address'}
             </Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.form}>
+            <Text style={styles.label}>Address Nickname (e.g. Home, Office)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Home / Office / Mom's House"
+              value={name}
+              onChangeText={setName}
+            />
+
+            <Text style={styles.label}>Street Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Unit, House No, Street name"
+              value={street}
+              onChangeText={setStreet}
+              multiline
+            />
+
+            <View style={styles.row}>
+              <View style={styles.flex1}>
+                <Text style={styles.label}>City</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="City"
+                  value={city}
+                  onChangeText={setCity}
+                />
+              </View>
+              <View style={[styles.flex1, {marginLeft: Spacing.md}]}>
+                <Text style={styles.label}>Postal Code</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Postal Code"
+                  value={postalCode}
+                  onChangeText={setPostalCode}
+                  keyboardType="number-pad"
+                />
+              </View>
+            </View>
+
+            <Text style={styles.label}>State</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="State"
+              value={state}
+              onChangeText={setState}
+            />
+
+            <Text style={styles.label}>Country</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Country"
+              value={country}
+              onChangeText={setCountry}
+              editable={false}
+            />
+
+            <Text style={styles.label}>Pin Location on Map</Text>
+            <View style={styles.mapWrapper}>
+              <View style={styles.mapContainer}>
+                <MapView
+                  style={styles.map}
+                  provider={PROVIDER_GOOGLE}
+                  region={region}
+                  onRegionChangeComplete={setRegion}
+                  rotateEnabled={false}
+                  pitchEnabled={false}
+                  onPress={e => {
+                    setLatitude(e.nativeEvent.coordinate.latitude.toString());
+                    setLongitude(e.nativeEvent.coordinate.longitude.toString());
+                  }}>
+                  <Marker
+                    coordinate={{
+                      latitude: parseFloat(latitude),
+                      longitude: parseFloat(longitude),
+                    }}
+                    draggable
+                    onDragEnd={e => {
+                      setLatitude(e.nativeEvent.coordinate.latitude.toString());
+                      setLongitude(e.nativeEvent.coordinate.longitude.toString());
+                    }}
+                  />
+                </MapView>
+              </View>
+
+              <View style={styles.mapControls}>
+                <TouchableOpacity style={styles.controlBtn} onPress={handleZoomIn}>
+                  <Icon name="plus" size={20} color={Colors.text} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.controlBtn} onPress={handleZoomOut}>
+                  <Icon name="minus" size={20} color={Colors.text} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.controlBtn, {marginTop: Spacing.sm}]}
+                  onPress={handleMyLocation}>
+                  <Icon name="crosshairs-gps" size={20} color={Colors.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveBtn, loading && styles.saveBtnDisabled]}
+              onPress={handleSave}
+              disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <Text style={styles.saveBtnText}>
+                  {editAddress ? 'Update Address' : 'Save Address'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };

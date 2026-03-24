@@ -1,6 +1,8 @@
 #import "AppDelegate.h"
 
 #import <Firebase.h>
+#import <GoogleMaps/GoogleMaps.h>
+#import <GoogleMaps/GMSServices.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
 
@@ -8,6 +10,7 @@
 
 - (BOOL)application:(UIApplication *)application
     didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  [GMSServices provideAPIKey:@"AIzaSyCmJUundZ9xZRd5BgoIxr1uRdIgwRXI-4A"];
   if ([FIRApp defaultApp] == nil) {
     [FIRApp configure];
   }
@@ -25,9 +28,20 @@
             openURL:(NSURL *)url
             options:
                 (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
+  if ([[FIRAuth auth] canHandleURL:url]) {
+    return YES;
+  }
   return [RCTLinkingManager application:application
                                 openURL:url
                                 options:options];
+}
+
+- (BOOL)application:(UIApplication *)application
+continueUserActivity:(NSUserActivity *)userActivity
+ restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+  return [RCTLinkingManager application:application
+                   continueUserActivity:userActivity
+                     restorationHandler:restorationHandler];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
