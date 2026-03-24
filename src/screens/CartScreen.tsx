@@ -16,6 +16,7 @@ import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
 import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrder} from '../context/OrderContext';
+// import {KEYS} from '../config/keys';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, clearCart} = useCart();
@@ -30,6 +31,13 @@ const CartScreen = ({navigation}: any) => {
       navigation.navigate('Login');
       return;
     }
+
+    // ---- Example: Using keys if we switch back to online ----
+    // const paymentDetails = {
+    //   mp_username: KEYS.FIUU.USERNAME,
+    //   mp_password: KEYS.FIUU.PASSWORD,
+    //   // ...
+    // };
 
     try {
       // Save order to history with 'cash' and 'unpaid' status
