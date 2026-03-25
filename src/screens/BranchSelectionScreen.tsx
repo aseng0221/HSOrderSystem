@@ -203,7 +203,7 @@ const BranchSelectionScreen = ({navigation}: any) => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        provider={PROVIDER_GOOGLE}
+        // provider={PROVIDER_GOOGLE}
       >
         {userLocation && (
           <Marker
