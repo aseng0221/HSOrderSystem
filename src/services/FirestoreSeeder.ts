@@ -131,6 +131,8 @@ export const seedMockOrders = async (userId: string) => {
         userId,
         status: 'completed',
         orderMode: 'pickup',
+        paymentMethod: 'cash',
+        paymentStatus: 'paid',
         totalAmount: 15.8,
         createdAt: now.getTime(),
         items: [
@@ -154,6 +156,8 @@ export const seedMockOrders = async (userId: string) => {
         userId,
         status: 'completed',
         orderMode: 'delivery',
+        paymentMethod: 'online',
+        paymentStatus: 'paid',
         totalAmount: 25.0,
         createdAt: yesterday.getTime(),
         items: [
@@ -181,6 +185,8 @@ export const seedMockOrders = async (userId: string) => {
         userId,
         status: 'pending',
         orderMode: 'pickup',
+        paymentMethod: 'cash',
+        paymentStatus: 'unpaid',
         totalAmount: 13.9,
         createdAt: lastWeek.getTime(),
         items: [

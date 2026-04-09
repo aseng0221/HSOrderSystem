@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import molpay from 'fiuu-mobile-xdk-reactnative';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
@@ -31,13 +32,6 @@ const CartScreen = ({navigation}: any) => {
       navigation.navigate('Login');
       return;
     }
-
-    // ---- Example: Using keys if we switch back to online ----
-    // const paymentDetails = {
-    //   mp_username: KEYS.FIUU.USERNAME,
-    //   mp_password: KEYS.FIUU.PASSWORD,
-    //   // ...
-    // };
 
     try {
       // Save order to history with 'cash' and 'unpaid' status
@@ -66,6 +60,65 @@ const CartScreen = ({navigation}: any) => {
       console.log('Error placing cash order', e);
       Alert.alert('Error', 'Could not place your order. Please try again.');
     }
+
+    // ---- Fiuu Implementation (Disabled per user request) ----
+    /*
+    const finalizeOrder = async () => {
+      // Save order to history
+      await createOrder({
+        userId: user.uid,
+        items: cart,
+        totalAmount: totalPrice,
+        status: 'pending',
+        orderMode: orderMode || 'pickup',
+        paymentMethod: 'online',
+        paymentStatus: 'paid',
+        branchId: selectedBranch?.id,
+        addressId: selectedAddress?.id,
+      });
+
+      // Add reward points for completing the order submission
+      await addPointsForPurchase(totalPrice);
+
+      Alert.alert('Success', 'Your order is confirmed!');
+      clearCart();
+      navigation.navigate('Home');
+    };
+
+    const paymentDetails = {
+      mp_username: KEYS.FIUU.USERNAME,
+      mp_password: KEYS.FIUU.PASSWORD,
+      mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
+      mp_app_name: 'HS Coffee',
+      mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
+      mp_amount: totalPrice.toFixed(2),
+      mp_order_ID: 'ORDER' + Date.now(),
+      mp_currency: 'MYR',
+      mp_country: 'MY',
+      mp_channel: 'multi',
+      mp_bill_description: 'Order from HS Coffee',
+      mp_bill_name: user?.displayName || 'Guest User',
+      mp_bill_email: user?.email || 'guest@example.com',
+      mp_bill_mobile: user?.phoneNumber || '+60123456789',
+    };
+
+    molpay.startMolpay(paymentDetails, async (data: string) => {
+      try {
+        const result = JSON.parse(data);
+        if (result.status_code === '00') {
+          // Payment Success
+          await finalizeOrder();
+        } else if (result.status_code === '11') {
+          Alert.alert('Failed', 'Payment failed or cancelled.');
+        } else if (result.status_code === '22') {
+          Alert.alert('Pending', 'Payment is pending.');
+          await finalizeOrder(); // Optionally finalize if pending is acceptable
+        }
+      } catch (e) {
+        console.log('Error parsing payment result', e);
+      }
+    });
+    */
   };
 
   const renderItem = ({item}: any) => (

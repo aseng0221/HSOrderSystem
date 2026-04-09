@@ -9,16 +9,6 @@ import App from '../App';
 // Note: import explicitly to use the types shipped with jest.
 import {it, jest} from '@jest/globals';
 
-jest.mock('@stripe/stripe-react-native', () => {
-  return {
-    StripeProvider: ({children}: any) => children,
-    useStripe: () => ({
-      initPaymentSheet: jest.fn().mockResolvedValue({error: null}),
-      presentPaymentSheet: jest.fn().mockResolvedValue({error: null}),
-    }),
-  };
-});
-
 jest.mock('../App', () => {
   const React = require('react');
   const {View} = require('react-native');
