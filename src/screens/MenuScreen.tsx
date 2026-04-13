@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   Dimensions,
@@ -11,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useNavigation} from '@react-navigation/native';

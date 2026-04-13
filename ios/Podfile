@@ -5,11 +5,11 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, '15.0'
+platform :ios, '16.0'
 prepare_react_native_project!
 
-# Firebase v15+ and RN 0.73 work best with static linkage
-use_frameworks! :linkage => :static
+# God Plan v9: RNFirebase Static Framework Specialist Mode
+$RNFirebaseAsStaticFramework = true
 
 flipper_config = FlipperConfiguration.disabled
 
@@ -28,11 +28,34 @@ target 'HSOrderSystem' do
 
   post_install do |installer|
     installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        # Force the deployment target to 15.0 for ALL pods
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      target.build_configurations.each do |build_config|
+        build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+        build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+        
+        # Enable modularity for all components in the static framework environment
+        build_config.build_settings['DEFINES_MODULE'] = 'YES'
+        build_config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+        build_config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+
+        # Ensure React-Core is identified as the 'React' module for external consumers
+        if target.name == 'React-Core'
+          build_config.build_settings['PRODUCT_MODULE_NAME'] = 'React'
+        end
+      end
+
+      # Fix 'Multiple commands produce' error for glog
+      if target.name == 'glog'
+        target.build_phases.each do |phase|
+          if phase.respond_to?(:display_name) && phase.display_name == 'Headers'
+            phase.files.delete_if do |f|
+              path = f.file_ref.path
+              path.start_with?('src/') && !path.start_with?('src/glog/') && path.end_with?('.h')
+            end
+          end
+        end
       end
     end
+
     react_native_post_install(
       installer,
       config[:reactNativePath],

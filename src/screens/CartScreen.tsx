@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   Image,
   Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
 import {Colors, Spacing} from '../theme';
@@ -37,8 +37,8 @@ const CartScreen = ({navigation}: any) => {
         orderMode: orderMode || 'pickup',
         paymentMethod: 'cash',
         paymentStatus: 'unpaid',
-        branchId: selectedBranch?.id,
-        addressId: selectedAddress?.id,
+        branchId: selectedBranch?.id || null,
+        addressId: selectedAddress?.id || null,
       });
 
       // Add reward points for completing the order submission
@@ -58,7 +58,6 @@ const CartScreen = ({navigation}: any) => {
 
   const handleFiuuPayment = async () => {
     try {
-      // Save order to history as unpaid first
       const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
@@ -67,8 +66,8 @@ const CartScreen = ({navigation}: any) => {
         orderMode: orderMode || 'pickup',
         paymentMethod: 'online',
         paymentStatus: 'unpaid',
-        branchId: selectedBranch?.id,
-        addressId: selectedAddress?.id,
+        branchId: selectedBranch?.id || null,
+        addressId: selectedAddress?.id || null,
       });
 
       const paymentDetails = {
@@ -89,27 +88,44 @@ const CartScreen = ({navigation}: any) => {
         mp_closebutton_display: true,
       };
 
-      molpay.startMolpay(paymentDetails, async (data: string) => {
+      molpay.startMolpay(paymentDetails, async (data: any) => {
         try {
-          const result = JSON.parse(data);
-          if (result.status_code === '00') {
+          console.log('Raw payment result:', data);
+          let result;
+          if (typeof data === 'string') {
+            // If it's a string, try to parse it
+            try {
+              result = JSON.parse(data);
+            } catch (parseError) {
+              console.log('FIUU payment result is not valid JSON string:', data);
+              // Some versions of SDK return a string that is not JSON but just a status code
+              result = {status_code: data};
+            }
+          } else {
+            // If it's already an object, use it directly
+            result = data;
+          }
+
+          if (result && result.status_code === '00') {
             // Payment Success
             await updateOrderPaymentStatus(orderId, 'paid');
             await addPointsForPurchase(totalPrice);
             Alert.alert('Success', 'Your order is confirmed!');
             clearCart();
             navigation.navigate('Home');
-          } else if (result.status_code === '11') {
+          } else if (result && result.status_code === '11') {
             Alert.alert('Failed', 'Payment failed or cancelled.');
             clearCart();
             navigation.navigate('Home');
-          } else if (result.status_code === '22') {
+          } else if (result && result.status_code === '22') {
             Alert.alert('Pending', 'Payment is pending.');
             clearCart();
             navigation.navigate('Home');
+          } else if (result && result.Error) {
+            Alert.alert('Payment Error', result.Error);
           }
         } catch (e) {
-          console.log('Error parsing payment result', e);
+          console.log('Error handling payment result', e);
         }
       });
     } catch (e) {

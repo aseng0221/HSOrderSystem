@@ -24,6 +24,6 @@ export interface Order {
   orderMode: 'pickup' | 'delivery';
   paymentMethod: 'cash' | 'online';
   paymentStatus: 'unpaid' | 'paid';
-  branchId?: string;
-  addressId?: string;
+  branchId?: string | null;
+  addressId?: string | null;
 }

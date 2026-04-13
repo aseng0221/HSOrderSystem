@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
 import {Colors, Spacing} from '../theme';

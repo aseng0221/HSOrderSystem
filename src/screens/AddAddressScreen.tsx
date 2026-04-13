@@ -4,12 +4,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   TextInput,
   ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';

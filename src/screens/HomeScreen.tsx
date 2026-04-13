@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing} from '../theme';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';

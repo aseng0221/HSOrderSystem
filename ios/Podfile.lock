@@ -1252,6 +1252,10 @@ PODS:
     - leveldb-library (~> 1.22)
     - nanopb (~> 3.30910.0)
   - FirebaseSharedSwift (12.8.0)
+  - fiuu-mobile-xdk-cocoapods (3.34.8)
+  - fiuu-mobile-xdk-reactnative (1.0.25):
+    - fiuu-mobile-xdk-cocoapods (= 3.34.8)
+    - React
   - fmt (6.2.1)
   - glog (0.3.5)
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
@@ -2453,6 +2457,42 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - SocketRocket (0.6.1)
+  - Stripe (23.28.3):
+    - StripeApplePay (= 23.28.3)
+    - StripeCore (= 23.28.3)
+    - StripePayments (= 23.28.3)
+    - StripePaymentsUI (= 23.28.3)
+    - StripeUICore (= 23.28.3)
+  - stripe-react-native (0.38.6):
+    - React-Core
+    - Stripe (~> 23.28.0)
+    - StripeApplePay (~> 23.28.0)
+    - StripeFinancialConnections (~> 23.28.0)
+    - StripePayments (~> 23.28.0)
+    - StripePaymentSheet (~> 23.28.0)
+    - StripePaymentsUI (~> 23.28.0)
+  - StripeApplePay (23.28.3):
+    - StripeCore (= 23.28.3)
+  - StripeCore (23.28.3)
+  - StripeFinancialConnections (23.28.3):
+    - StripeCore (= 23.28.3)
+    - StripeUICore (= 23.28.3)
+  - StripePayments (23.28.3):
+    - StripeCore (= 23.28.3)
+    - StripePayments/Stripe3DS2 (= 23.28.3)
+  - StripePayments/Stripe3DS2 (23.28.3):
+    - StripeCore (= 23.28.3)
+  - StripePaymentSheet (23.28.3):
+    - StripeApplePay (= 23.28.3)
+    - StripeCore (= 23.28.3)
+    - StripePayments (= 23.28.3)
+    - StripePaymentsUI (= 23.28.3)
+  - StripePaymentsUI (23.28.3):
+    - StripeCore (= 23.28.3)
+    - StripePayments (= 23.28.3)
+    - StripeUICore (= 23.28.3)
+  - StripeUICore (23.28.3):
+    - StripeCore (= 23.28.3)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -2460,6 +2500,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
+  - fiuu-mobile-xdk-reactnative (from `../node_modules/fiuu-mobile-xdk-reactnative`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
@@ -2516,6 +2557,7 @@ DEPENDENCIES:
   - "RNFBFirestore (from `../node_modules/@react-native-firebase/firestore`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
+  - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2532,6 +2574,7 @@ SPEC REPOS:
     - FirebaseFirestore
     - FirebaseFirestoreInternal
     - FirebaseSharedSwift
+    - fiuu-mobile-xdk-cocoapods
     - fmt
     - GoogleUtilities
     - "gRPC-C++"
@@ -2542,6 +2585,14 @@ SPEC REPOS:
     - nanopb
     - RecaptchaInterop
     - SocketRocket
+    - Stripe
+    - StripeApplePay
+    - StripeCore
+    - StripeFinancialConnections
+    - StripePayments
+    - StripePaymentSheet
+    - StripePaymentsUI
+    - StripeUICore
 
 EXTERNAL SOURCES:
   boost:
@@ -2552,6 +2603,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
+  fiuu-mobile-xdk-reactnative:
+    :path: "../node_modules/fiuu-mobile-xdk-reactnative"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
@@ -2659,6 +2712,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
+  stripe-react-native:
+    :path: "../node_modules/@stripe/stripe-react-native"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -2679,8 +2734,10 @@ SPEC CHECKSUMS:
   FirebaseFirestore: 67f23000ca238ccbab79127ed59636a9a2689e74
   FirebaseFirestoreInternal: a0e7382af3d208898dcd1d4d52d8a7870632e881
   FirebaseSharedSwift: f57ed48f4542b2d7eb4738f4f23ba443f78b3780
+  fiuu-mobile-xdk-cocoapods: 0253017f2e3d7f6901c4952ae66dab4182ccd334
+  fiuu-mobile-xdk-reactnative: 8b7562eb4dc8203ddce1844c22205a0bea9abec3
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
+  glog: 70cba23d78cb4e2a05a6c50b1c20a0702b510c66
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
@@ -2742,8 +2799,17 @@ SPEC CHECKSUMS:
   RNScreens: 1174f55dd2f72abe45a4e48bf20e552feb051600
   RNVectorIcons: 4f6b99dc90099be8ef38dd7b65c6d2c398c650b1
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
+  Stripe: cdf416cf2efe286f532a6306de0fcaa0ecc8c71a
+  stripe-react-native: cfd043258216a17eaf49b3cdd67954f90438b7e9
+  StripeApplePay: efb62ffc08e6cd4f161d77ddb45de2451075c54e
+  StripeCore: 9731f05e327c3dcaf7d7abd116840ceaa9482bbe
+  StripeFinancialConnections: 46c0049aaab3a179193502bce4a8096eb7b73f55
+  StripePayments: dd1867a620b0b8b5e294e9ff2f1f7b7770765f47
+  StripePaymentSheet: d155dfde74e90784d054deffb4f561a1f6dd638f
+  StripePaymentsUI: c24f990b03a68a7f6fe704b15dd487e7bb6b603e
+  StripeUICore: f2d514e900c37436dc5427fdf2c29d68ab1c2935
   Yoga: d8b0f242670c8d28249d3aab276ca1a3b8db34f5
 
-PODFILE CHECKSUM: cb2d03cd706fdd3006101b1d33f8d4a6adcdae52
+PODFILE CHECKSUM: 4233e564b6279efd1afa6140fc52c0270cc00192
 
 COCOAPODS: 1.16.2

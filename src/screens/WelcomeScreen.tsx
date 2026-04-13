@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {seedMenuData} from '../services/FirestoreSeeder';
-import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
   useEffect(() => {
