@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut, FirebaseAuthTypes } from '@react-native-firebase/auth';
-import { firebaseAuth } from '../services/firebase';
+import {useState, useEffect} from 'react';
+import {
+  onAuthStateChanged,
+  signOut,
+  FirebaseAuthTypes,
+} from '@react-native-firebase/auth';
+import {firebaseAuth} from '../services/firebase';
 import firestore from '@react-native-firebase/firestore';
 
 export const useAuthViewModel = () => {
@@ -8,19 +12,22 @@ export const useAuthViewModel = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const subscriber = onAuthStateChanged(firebaseAuth, async (userState) => {
+    const subscriber = onAuthStateChanged(firebaseAuth, async userState => {
       setUser(userState);
       setLoading(false);
 
       if (userState) {
         // Synchronize user profile to Firestore whenever auth state is detected
         try {
-          await firestore().collection('users').doc(userState.uid).set({
-            phoneNumber: userState.phoneNumber,
-            lastLogin: firestore.FieldValue.serverTimestamp(),
-            // Only set createdAt if it doesn't exist
-            createdAt: firestore.FieldValue.serverTimestamp(),
-          }, { merge: true });
+          await firestore().collection('users').doc(userState.uid).set(
+            {
+              phoneNumber: userState.phoneNumber,
+              lastLogin: firestore.FieldValue.serverTimestamp(),
+              // Only set createdAt if it doesn't exist
+              createdAt: firestore.FieldValue.serverTimestamp(),
+            },
+            {merge: true},
+          );
         } catch (error) {
           console.error('Error syncing user to Firestore:', error);
         }

@@ -41,7 +41,7 @@ const OrderModeModal: React.FC<OrderModeModalProps> = ({
             onPress={() => onSelect('pickup')}>
             <View style={styles.optionContent}>
               <View style={styles.imagePlaceholder}>
-                {/* In a real app, use the asset provided by the user. 
+                {/* In a real app, use the asset provided by the user.
                       Since I don't have the image file, I'll use a local mock or icon.
                       The user provided images in the prompt, so I'll try to match the UI. */}
                 <Image

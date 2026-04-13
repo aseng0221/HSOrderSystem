@@ -41,10 +41,10 @@ export const isBiometricEnabled = async (): Promise<boolean> => {
 };
 
 export const clearStoredData = async () => {
-    try {
-        await AsyncStorage.removeItem(KEYS.SAVED_PHONE_NUMBER);
-        await AsyncStorage.removeItem(KEYS.BIOMETRIC_ENABLED);
-    } catch (e) {
-        console.error('Error clearing stored data:', e);
-    }
+  try {
+    await AsyncStorage.removeItem(KEYS.SAVED_PHONE_NUMBER);
+    await AsyncStorage.removeItem(KEYS.BIOMETRIC_ENABLED);
+  } catch (e) {
+    console.error('Error clearing stored data:', e);
+  }
 };

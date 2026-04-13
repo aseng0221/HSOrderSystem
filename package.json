@@ -1,6 +1,6 @@
 {
   "name": "HSOrderSystem",
-  "version": "0.0.1",
+  "version": "0.1.0-beta.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -17,6 +17,7 @@
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
+    "fiuu-mobile-xdk-reactnative": "^1.0.25",
     "react": "18.2.0",
     "react-native": "0.73.11",
     "react-native-biometrics": "^3.0.1",

@@ -306,12 +306,16 @@ const MenuScreen = () => {
       );
     }
 
-    if (!item?.products) return null;
+    if (!item?.products) {
+      return null;
+    }
 
     return (
       <View style={styles.row}>
         {item.products.map((product: any) => {
-          if (!product) return null;
+          if (!product) {
+            return null;
+          }
           return (
             <ProductCard
               key={product.id}
