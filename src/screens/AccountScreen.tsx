@@ -100,7 +100,9 @@ const AccountScreen = ({navigation}: any) => {
         </View>
 
         <View style={styles.menuContainer}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('OrderHistory')}>
             <Icon name="history" size={24} color={Colors.primary} />
             <Text style={styles.menuItemText}>Order History</Text>
             <Icon name="chevron-right" size={24} color={Colors.grey} />
