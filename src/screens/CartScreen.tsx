@@ -94,6 +94,7 @@ const CartScreen = ({navigation}: any) => {
       mp_bill_name: user?.displayName || 'Guest User',
       mp_bill_email: user?.email || 'guest@example.com',
       mp_bill_mobile: user?.phoneNumber || '+60123456789',
+      mp_closebutton_display: true,
     };
 
     molpay.startMolpay(paymentDetails, async (data: string) => {
