@@ -106,7 +106,11 @@ const HomeScreen = ({navigation}: any) => {
                             : Colors.textSecondary,
                       },
                     ]}>
-                    {order.status.replace(/_/g, ' ').toUpperCase()}
+                    {order.status === 'pending' &&
+                    order.paymentMethod === 'online' &&
+                    order.paymentStatus === 'unpaid'
+                      ? 'PENDING PAYMENT'
+                      : order.status.replace(/_/g, ' ').toUpperCase()}
                   </Text>
                   {order.paymentMethod === 'cash' &&
                     order.paymentStatus === 'unpaid' && (

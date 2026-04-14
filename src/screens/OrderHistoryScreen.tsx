@@ -54,7 +54,11 @@ const OrderHistoryScreen = ({navigation}: any) => {
                   ? styles.statusCancelled
                   : styles.statusPending,
               ]}>
-              {item.status.toUpperCase()}
+              {item.status === 'pending' &&
+              item.paymentMethod === 'online' &&
+              item.paymentStatus === 'unpaid'
+                ? 'PENDING PAYMENT'
+                : item.status.toUpperCase()}
             </Text>
             {item.paymentMethod === 'cash' &&
               item.paymentStatus === 'unpaid' && (

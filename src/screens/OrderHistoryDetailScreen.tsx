@@ -113,7 +113,11 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
           <View style={styles.badgesContainer}>
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
-                {order.status.replace(/_/g, ' ').toUpperCase()}
+                {order.status === 'pending' &&
+                order.paymentMethod === 'online' &&
+                order.paymentStatus === 'unpaid'
+                  ? 'PENDING PAYMENT'
+                  : order.status.replace(/_/g, ' ').toUpperCase()}
               </Text>
             </View>
             {order.paymentMethod === 'cash' &&
