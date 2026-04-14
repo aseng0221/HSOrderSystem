@@ -44,17 +44,23 @@ const OrderHistoryScreen = ({navigation}: any) => {
           <Text style={styles.orderId}>
             Order #{item.id.slice(-6).toUpperCase()}
           </Text>
-          <Text
-            style={[
-              styles.statusBadge,
-              item.status === 'completed'
-                ? styles.statusCompleted
-                : item.status === 'cancelled'
-                ? styles.statusCancelled
-                : styles.statusPending,
-            ]}>
-            {item.status.toUpperCase()}
-          </Text>
+          <View style={styles.statusContainer}>
+            <Text
+              style={[
+                styles.statusBadge,
+                item.status === 'completed'
+                  ? styles.statusCompleted
+                  : item.status === 'cancelled'
+                  ? styles.statusCancelled
+                  : styles.statusPending,
+              ]}>
+              {item.status.toUpperCase()}
+            </Text>
+            {item.paymentMethod === 'cash' &&
+              item.paymentStatus === 'unpaid' && (
+                <Text style={styles.unpaidCashText}>UNPAID (CASH)</Text>
+              )}
+          </View>
         </View>
         <Text style={styles.orderDate}>{formatDate(item.createdAt)}</Text>
         <View style={styles.orderFooter}>
@@ -164,6 +170,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
   },
+  statusContainer: {
+    alignItems: 'flex-end',
+  },
   statusBadge: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -183,6 +192,12 @@ const styles = StyleSheet.create({
   statusCancelled: {
     backgroundColor: '#FFEBEE',
     color: '#C62828',
+  },
+  unpaidCashText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: Colors.error || '#C62828',
+    marginTop: 4,
   },
   orderDate: {
     fontSize: 14,

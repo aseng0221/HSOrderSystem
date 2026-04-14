@@ -8,6 +8,8 @@ import {
   startAfter,
   getDocs,
   addDoc,
+  doc,
+  updateDoc,
   serverTimestamp,
   QueryDocumentSnapshot,
   DocumentData,
@@ -121,6 +123,21 @@ export const useOrderHistoryViewModel = () => {
     }
   };
 
+  const updateOrderPaymentStatus = async (
+    orderId: string,
+    paymentStatus: 'paid' | 'unpaid',
+  ) => {
+    try {
+      const orderDocRef = doc(db, 'orders', orderId);
+      await updateDoc(orderDocRef, {paymentStatus});
+      // Refresh the orders list to reflect the update
+      fetchOrders(false);
+    } catch (error) {
+      console.error('Error updating order payment status:', error);
+      throw error;
+    }
+  };
+
   return {
     orders,
     loading,
@@ -128,5 +145,6 @@ export const useOrderHistoryViewModel = () => {
     hasMore,
     fetchOrders,
     createOrder,
+    updateOrderPaymentStatus,
   };
 };

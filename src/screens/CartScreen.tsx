@@ -21,7 +21,7 @@ import {KEYS} from '../config/keys';
 
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, clearCart} = useCart();
-  const {createOrder} = useOrderHistoryViewModel();
+  const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {user} = useAuthViewModel();
   const {orderMode, selectedBranch, selectedAddress} = useOrder();
@@ -57,62 +57,65 @@ const CartScreen = ({navigation}: any) => {
   };
 
   const handleFiuuPayment = async () => {
-    const finalizeOrder = async () => {
-      // Save order to history
-      await createOrder({
+    try {
+      // Save order to history as unpaid first
+      const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
         totalAmount: totalPrice,
         status: 'pending',
         orderMode: orderMode || 'pickup',
         paymentMethod: 'online',
-        paymentStatus: 'paid',
+        paymentStatus: 'unpaid',
         branchId: selectedBranch?.id,
         addressId: selectedAddress?.id,
       });
 
-      // Add reward points for completing the order submission
-      await addPointsForPurchase(totalPrice);
+      const paymentDetails = {
+        mp_username: KEYS.FIUU.USERNAME,
+        mp_password: KEYS.FIUU.PASSWORD,
+        mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
+        mp_app_name: KEYS.FIUU.APP_NAME || 'HS Coffee',
+        mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
+        mp_amount: totalPrice.toFixed(2),
+        mp_order_ID: orderId,
+        mp_currency: 'MYR',
+        mp_country: 'MY',
+        mp_channel: 'multi',
+        mp_bill_description: 'Order from HS Coffee',
+        mp_bill_name: user?.displayName || 'Guest User',
+        mp_bill_email: user?.email || 'guest@example.com',
+        mp_bill_mobile: user?.phoneNumber || '+60123456789',
+        mp_closebutton_display: true,
+      };
 
-      Alert.alert('Success', 'Your order is confirmed!');
-      clearCart();
-      navigation.navigate('Home');
-    };
-
-    const paymentDetails = {
-      mp_username: KEYS.FIUU.USERNAME,
-      mp_password: KEYS.FIUU.PASSWORD,
-      mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
-      mp_app_name: KEYS.FIUU.APP_NAME || 'HS Coffee',
-      mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
-      mp_amount: totalPrice.toFixed(2),
-      mp_order_ID: 'ORDER' + Date.now(),
-      mp_currency: 'MYR',
-      mp_country: 'MY',
-      mp_channel: 'multi',
-      mp_bill_description: 'Order from HS Coffee',
-      mp_bill_name: user?.displayName || 'Guest User',
-      mp_bill_email: user?.email || 'guest@example.com',
-      mp_bill_mobile: user?.phoneNumber || '+60123456789',
-      mp_closebutton_display: true,
-    };
-
-    molpay.startMolpay(paymentDetails, async (data: string) => {
-      try {
-        const result = JSON.parse(data);
-        if (result.status_code === '00') {
-          // Payment Success
-          await finalizeOrder();
-        } else if (result.status_code === '11') {
-          Alert.alert('Failed', 'Payment failed or cancelled.');
-        } else if (result.status_code === '22') {
-          Alert.alert('Pending', 'Payment is pending.');
-          await finalizeOrder(); // Optionally finalize if pending is acceptable
+      molpay.startMolpay(paymentDetails, async (data: string) => {
+        try {
+          const result = JSON.parse(data);
+          if (result.status_code === '00') {
+            // Payment Success
+            await updateOrderPaymentStatus(orderId, 'paid');
+            await addPointsForPurchase(totalPrice);
+            Alert.alert('Success', 'Your order is confirmed!');
+            clearCart();
+            navigation.navigate('Home');
+          } else if (result.status_code === '11') {
+            Alert.alert('Failed', 'Payment failed or cancelled.');
+            clearCart();
+            navigation.navigate('Home');
+          } else if (result.status_code === '22') {
+            Alert.alert('Pending', 'Payment is pending.');
+            clearCart();
+            navigation.navigate('Home');
+          }
+        } catch (e) {
+          console.log('Error parsing payment result', e);
         }
-      } catch (e) {
-        console.log('Error parsing payment result', e);
-      }
-    });
+      });
+    } catch (e) {
+      console.log('Error placing online order', e);
+      Alert.alert('Error', 'Could not create your order. Please try again.');
+    }
   };
 
   const handleCheckout = () => {
