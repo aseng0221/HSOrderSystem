@@ -5,6 +5,10 @@ jest.mock('react-native-geolocation-service', () => ({
   stopObserving: jest.fn(),
 }));
 
+jest.mock('react-native-device-info', () => ({
+  isEmulator: jest.fn().mockResolvedValue(true),
+}));
+
 jest.mock('react-native', () => ({
   Platform: {
     OS: 'ios',
