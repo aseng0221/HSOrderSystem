@@ -46,7 +46,7 @@ const CartScreen = ({navigation}: any) => {
 
       Alert.alert(
         'Order Placed',
-        'Your order has been placed. Please pay by cash at the counter before pickup.',
+        'Your order has been placed. Please note that we will only prepare your order once we receive the payment at the counter.',
       );
       clearCart();
       navigation.navigate('Home');

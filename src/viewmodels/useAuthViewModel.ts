@@ -9,12 +9,14 @@ import firestore from '@react-native-firebase/firestore';
 
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribeProfile: () => void;
+
     const subscriber = onAuthStateChanged(firebaseAuth, async userState => {
       setUser(userState);
-      setLoading(false);
 
       if (userState) {
         // Synchronize user profile to Firestore whenever auth state is detected
@@ -28,12 +30,32 @@ export const useAuthViewModel = () => {
             },
             {merge: true},
           );
+
+          // Listen to wallet balance updates
+          unsubscribeProfile = firestore()
+            .collection('users')
+            .doc(userState.uid)
+            .onSnapshot(doc => {
+              if (doc.exists) {
+                const data = doc.data();
+                setWalletBalance(data?.walletBalance || 0);
+              }
+            });
         } catch (error) {
           console.error('Error syncing user to Firestore:', error);
         }
+      } else {
+        setWalletBalance(0);
       }
+      setLoading(false);
     });
-    return subscriber;
+
+    return () => {
+      subscriber();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
+    };
   }, []);
 
   const logout = async () => {
@@ -44,10 +66,29 @@ export const useAuthViewModel = () => {
     }
   };
 
+  const updateWalletBalance = async (amount: number) => {
+    if (!user) {
+      return;
+    }
+    try {
+      await firestore()
+        .collection('users')
+        .doc(user.uid)
+        .update({
+          walletBalance: firestore.FieldValue.increment(amount),
+        });
+    } catch (error) {
+      console.error('Error updating wallet balance:', error);
+      throw error;
+    }
+  };
+
   return {
     user,
+    walletBalance,
     loading,
     isAuthenticated: !!user,
     logout,
+    updateWalletBalance,
   };
 };
