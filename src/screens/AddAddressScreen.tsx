@@ -135,7 +135,9 @@ const AddAddressScreen = ({navigation, route}: any) => {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.form}>
+      <ScrollView
+        contentContainerStyle={styles.form}
+        keyboardShouldPersistTaps="handled">
         <Text style={styles.label}>Address Nickname (e.g. Home, Office)</Text>
         <TextInput
           style={styles.input}

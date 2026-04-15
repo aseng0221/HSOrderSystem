@@ -15,7 +15,14 @@ import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrder} from '../context/OrderContext';
 
 import {seedMenuData, seedMockOrders} from '../services/FirestoreSeeder';
-import {Alert, ActivityIndicator, Modal, TextInput} from 'react-native';
+import {
+  Alert,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 
 import {clearStoredData} from '../utils/storage';
 import {KEYS} from '../config/keys';
@@ -221,31 +228,35 @@ const AccountScreen = ({navigation}: any) => {
         transparent={true}
         animationType="slide"
         onRequestClose={() => setTopupModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Top Up Wallet</Text>
-            <Text style={styles.modalSubtitle}>Minimum amount: RM 20</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="0.00"
-              keyboardType="numeric"
-              value={topupAmount}
-              onChangeText={setTopupAmount}
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setTopupModalVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={handleTopup}>
-                <Text style={styles.confirmButtonText}>Confirm</Text>
-              </TouchableOpacity>
-            </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Top Up Wallet</Text>
+                <Text style={styles.modalSubtitle}>Minimum amount: RM 20</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                  value={topupAmount}
+                  onChangeText={setTopupAmount}
+                />
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setTopupModalVisible(false)}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.confirmButton]}
+                    onPress={handleTopup}>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
