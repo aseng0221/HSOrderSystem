@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
   Platform,
   Alert,
 } from 'react-native';
@@ -164,27 +166,29 @@ const LoginScreen = ({navigation}: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}>
-        <View style={styles.content}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.closeButton}>
-            <Icon name="close" size={24} color={Colors.text} />
-          </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.content}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeButton}>
+              <Icon name="close" size={24} color={Colors.text} />
+            </TouchableOpacity>
 
-          {isBiometricView ? renderBiometricView() : renderDefaultView()}
+            {isBiometricView ? renderBiometricView() : renderDefaultView()}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By logging in or registering, you agree to our{' '}
-              <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-              <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
-              <Text style={styles.linkText}>
-                Personal Data Protection Policy
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By logging in or registering, you agree to our{' '}
+                <Text style={styles.linkText}>Terms of Service</Text>,{' '}
+                <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
+                <Text style={styles.linkText}>
+                  Personal Data Protection Policy
+                </Text>
               </Text>
-            </Text>
-            <Text style={styles.versionText}>Version 5.5.19</Text>
+              <Text style={styles.versionText}>Version 5.5.19</Text>
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
