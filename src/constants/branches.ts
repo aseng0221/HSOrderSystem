@@ -8,7 +8,7 @@ export const MIRI_LOCATION = {
 export const MOCK_BRANCHES: Branch[] = [
   {
     id: '1',
-    name: 'HS Coffee Bintang Megamall',
+    name: 'NextDoor Bintang Megamall',
     address: 'Lot G.01, Ground Floor, Bintang Megamall, Miri',
     latitude: 4.4005,
     longitude: 113.992,
@@ -17,7 +17,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '2',
-    name: 'HS Coffee Boulevard',
+    name: 'NextDoor Boulevard',
     address: 'Boulevard Shopping Complex, Jalan Pujut, Miri',
     latitude: 4.415,
     longitude: 114.015,
@@ -26,7 +26,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '3',
-    name: 'HS Coffee Imperial City',
+    name: 'NextDoor Imperial City',
     address: 'Imperial City Mall, Jalan Merpati, Miri',
     latitude: 4.398,
     longitude: 113.991,
@@ -35,7 +35,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '4',
-    name: 'HS Coffee Lutong',
+    name: 'NextDoor Lutong',
     address: 'Jalan Pasar Lutong, Lutong, Miri',
     latitude: 4.475,
     longitude: 114.005,
@@ -44,7 +44,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '5',
-    name: 'HS Coffee Senadin',
+    name: 'NextDoor Senadin',
     address: 'Senadin Gateway, Miri',
     latitude: 4.512,
     longitude: 114.018,
@@ -53,7 +53,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '6',
-    name: 'HS Coffee Marina ParkCity',
+    name: 'NextDoor Marina ParkCity',
     address: 'Marina Square 1, Marina ParkCity, Miri',
     latitude: 4.395,
     longitude: 113.985,
@@ -62,7 +62,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '7',
-    name: 'HS Coffee Pelita',
+    name: 'NextDoor Pelita',
     address: 'Pelita Commercial Centre, Miri',
     latitude: 4.408,
     longitude: 113.998,
@@ -71,7 +71,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '8',
-    name: 'HS Coffee Permyjaya',
+    name: 'NextDoor Permyjaya',
     address: 'Permy Mall, Bandar Baru Permyjaya, Miri',
     latitude: 4.445,
     longitude: 114.025,
@@ -80,7 +80,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '9',
-    name: 'HS Coffee Luak Esplanade',
+    name: 'NextDoor Luak Esplanade',
     address: 'Luak Bay, Miri',
     latitude: 4.345,
     longitude: 113.97,
@@ -89,7 +89,7 @@ export const MOCK_BRANCHES: Branch[] = [
   },
   {
     id: '10',
-    name: 'HS Coffee Krokop',
+    name: 'NextDoor Krokop',
     address: 'Jalan Krokop Utama, Miri',
     latitude: 4.412,
     longitude: 114.008,

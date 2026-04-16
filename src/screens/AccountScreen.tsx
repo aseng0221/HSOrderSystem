@@ -89,7 +89,7 @@ const AccountScreen = ({navigation}: any) => {
       mp_username: KEYS.FIUU.USERNAME,
       mp_password: KEYS.FIUU.PASSWORD,
       mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
-      mp_app_name: KEYS.FIUU.APP_NAME || 'HS Coffee',
+      mp_app_name: KEYS.FIUU.APP_NAME || 'NextDoor',
       mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
       mp_amount: amount.toFixed(2),
       mp_order_ID: `TOPUP_${Date.now()}`,

@@ -10,7 +10,7 @@ const WelcomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to HSOrderSystem</Text>
+        <Text style={styles.title}>Welcome to NextDoor</Text>
         <Text style={styles.subtitle}>
           Your cross-platform ordering application.
         </Text>

@@ -3,7 +3,7 @@ export const KEYS = {
     USERNAME: '',
     PASSWORD: '',
     MERCHANT_ID: '',
-    APP_NAME: 'HS Coffee',
+    APP_NAME: 'NextDoor',
     VERIFICATION_KEY: '',
   },
 };
