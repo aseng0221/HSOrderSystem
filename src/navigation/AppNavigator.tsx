@@ -15,6 +15,8 @@ import CartScreen from '../screens/CartScreen';
 import BranchSelectionScreen from '../screens/BranchSelectionScreen';
 import AddressSelectionScreen from '../screens/AddressSelectionScreen';
 import AddAddressScreen from '../screens/AddAddressScreen';
+import OrderHistoryScreen from '../screens/OrderHistoryScreen';
+import OrderHistoryDetailScreen from '../screens/OrderHistoryDetailScreen';
 import OrderModeModal from '../components/OrderModeModal';
 import {useOrder, OrderMode} from '../context/OrderContext';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
@@ -99,6 +101,11 @@ const AppNavigator = () => {
           component={AddressSelectionScreen}
         />
         <Stack.Screen name="AddAddress" component={AddAddressScreen} />
+        <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+        <Stack.Screen
+          name="OrderHistoryDetail"
+          component={OrderHistoryDetailScreen}
+        />
 
         {/* Auth Flow Stack */}
         <Stack.Group screenOptions={{presentation: 'modal'}}>

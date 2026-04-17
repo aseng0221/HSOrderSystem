@@ -70,3 +70,10 @@ yarn-error.log
 *.txt
 .vscode/
 *.png
+
+# API Keys and Secrets
+src/config/keys.ts
+
+# Firebase config files
+google-services.json
+GoogleService-Info.plist

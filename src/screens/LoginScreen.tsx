@@ -3,13 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
   Platform,
   Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import auth, {signInWithPhoneNumber} from '@react-native-firebase/auth';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -116,7 +118,7 @@ const LoginScreen = ({navigation}: any) => {
   const renderDefaultView = () => (
     <>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome to HS Order</Text>
+        <Text style={styles.title}>Welcome to NextDoor</Text>
         <Text style={styles.subtitle}>Enter your phone number</Text>
       </View>
 
@@ -164,27 +166,29 @@ const LoginScreen = ({navigation}: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}>
-        <View style={styles.content}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.closeButton}>
-            <Icon name="close" size={24} color={Colors.text} />
-          </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.content}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeButton}>
+              <Icon name="close" size={24} color={Colors.text} />
+            </TouchableOpacity>
 
-          {isBiometricView ? renderBiometricView() : renderDefaultView()}
+            {isBiometricView ? renderBiometricView() : renderDefaultView()}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By logging in or registering, you agree to our{' '}
-              <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-              <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
-              <Text style={styles.linkText}>
-                Personal Data Protection Policy
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                By logging in or registering, you agree to our{' '}
+                <Text style={styles.linkText}>Terms of Service</Text>,{' '}
+                <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
+                <Text style={styles.linkText}>
+                  Personal Data Protection Policy
+                </Text>
               </Text>
-            </Text>
-            <Text style={styles.versionText}>Version 5.5.19</Text>
+              <Text style={styles.versionText}>Version 5.5.19</Text>
+            </View>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

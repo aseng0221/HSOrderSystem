@@ -1,18 +1,18 @@
 buildscript {
     ext {
         buildToolsVersion = "34.0.0"
-        minSdkVersion = 23
-        compileSdkVersion = 34
-        targetSdkVersion = 34
+        minSdkVersion = 26
+        compileSdkVersion = 35
+        targetSdkVersion = 35
         ndkVersion = "25.1.8937393"
-        kotlinVersion = "1.8.21"
+        kotlinVersion = "1.9.24"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.1.1")
+        classpath("com.android.tools.build:gradle:8.6.0")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("com.google.gms:google-services:4.4.2")
@@ -27,9 +27,20 @@ allprojects {
         google()
     }
 
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.android.gms:play-services-location:20.0.0'
+        }
+    }
+
+
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             jvmTarget = "17"
+            freeCompilerArgs += [
+                "-P",
+                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+            ]
         }
     }
 

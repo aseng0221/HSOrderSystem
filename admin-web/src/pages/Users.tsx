@@ -48,7 +48,9 @@ const Users = () => {
   };
 
   const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'N/A';
+    if (!timestamp) {
+      return 'N/A';
+    }
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleString();
   };

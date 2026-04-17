@@ -1,5 +1,6 @@
 import {PermissionsAndroid, Platform} from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import DeviceInfo from 'react-native-device-info';
 
 /**
  * Calculates the distance between two points in kilometers using the Haversine formula.
@@ -36,29 +37,41 @@ export const getCurrentLocation = (): Promise<{
   longitude: number;
 }> => {
   return new Promise(async (resolve, reject) => {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      );
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        // Fallback to Miri location or reject
+    try {
+      const isEmulator = await DeviceInfo.isEmulator();
+      if (isEmulator) {
+        // Hardcoded Miri location for simulators/emulators
+        console.log('Running on emulator, using hardcoded location.');
         return resolve({latitude: 4.3995, longitude: 113.9914});
       }
-    }
 
-    Geolocation.getCurrentPosition(
-      position => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      error => {
-        console.warn('Geolocation error:', error);
-        // Fallback to Miri center
-        resolve({latitude: 4.3995, longitude: 113.9914});
-      },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-    );
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          // Fallback to Miri location or reject
+          return resolve({latitude: 4.3995, longitude: 113.9914});
+        }
+      }
+
+      Geolocation.getCurrentPosition(
+        position => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        error => {
+          console.warn('Geolocation error:', error);
+          // Fallback to Miri center
+          resolve({latitude: 4.3995, longitude: 113.9914});
+        },
+        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      );
+    } catch (e) {
+      console.warn('Error checking emulator status:', e);
+      resolve({latitude: 4.3995, longitude: 113.9914});
+    }
   });
 };

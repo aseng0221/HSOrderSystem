@@ -3,17 +3,164 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   Image,
+  Alert,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import molpay from 'fiuu-mobile-xdk-reactnative';
 import {Colors, Spacing} from '../theme';
 import {useCart} from '../context/CartContext';
+import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
+import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
+import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
+import {useOrder} from '../context/OrderContext';
+import {KEYS} from '../config/keys';
 
 const CartScreen = ({navigation}: any) => {
-  const {cart, totalPrice, updateQuantity} = useCart();
+  const {cart, totalPrice, updateQuantity, clearCart} = useCart();
+  const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
+  const {addPointsForPurchase} = useRewardsViewModel();
+  const {user} = useAuthViewModel();
+  const {orderMode, selectedBranch, selectedAddress} = useOrder();
+
+  const handleCashPayment = async () => {
+    try {
+      // Save order to history with 'cash' and 'unpaid' status
+      await createOrder({
+        userId: user!.uid,
+        items: cart,
+        totalAmount: totalPrice,
+        status: 'pending',
+        orderMode: orderMode || 'pickup',
+        paymentMethod: 'cash',
+        paymentStatus: 'unpaid',
+        branchId: selectedBranch?.id || null,
+        addressId: selectedAddress?.id || null,
+      });
+
+      // Add reward points for completing the order submission
+      await addPointsForPurchase(totalPrice);
+
+      Alert.alert(
+        'Order Placed',
+        'Your order has been placed. Please note that we will only prepare your order once we receive the payment at the counter.',
+      );
+      clearCart();
+      navigation.navigate('Home');
+    } catch (e) {
+      console.log('Error placing cash order', e);
+      Alert.alert('Error', 'Could not place your order. Please try again.');
+    }
+  };
+
+  const handleFiuuPayment = async () => {
+    try {
+      const orderId = await createOrder({
+        userId: user!.uid,
+        items: cart,
+        totalAmount: totalPrice,
+        status: 'pending',
+        orderMode: orderMode || 'pickup',
+        paymentMethod: 'online',
+        paymentStatus: 'unpaid',
+        branchId: selectedBranch?.id || null,
+        addressId: selectedAddress?.id || null,
+      });
+
+      const paymentDetails = {
+        mp_username: KEYS.FIUU.USERNAME,
+        mp_password: KEYS.FIUU.PASSWORD,
+        mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
+        mp_app_name: KEYS.FIUU.APP_NAME || 'NextDoor',
+        mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
+        mp_amount: totalPrice.toFixed(2),
+        mp_order_ID: orderId,
+        mp_currency: 'MYR',
+        mp_country: 'MY',
+        mp_channel: 'multi',
+        mp_bill_description: 'Order from NextDoor',
+        mp_bill_name: user?.displayName || 'Guest User',
+        mp_bill_email: user?.email || 'guest@example.com',
+        mp_bill_mobile: user?.phoneNumber || '+60123456789',
+        mp_closebutton_display: true,
+      };
+
+      molpay.startMolpay(paymentDetails, async (data: any) => {
+        try {
+          console.log('Raw payment result:', data);
+          let result;
+          if (typeof data === 'string') {
+            // If it's a string, try to parse it
+            try {
+              result = JSON.parse(data);
+            } catch (parseError) {
+              console.log('FIUU payment result is not valid JSON string:', data);
+              // Some versions of SDK return a string that is not JSON but just a status code
+              result = {status_code: data};
+            }
+          } else {
+            // If it's already an object, use it directly
+            result = data;
+          }
+
+          if (result && result.status_code === '00') {
+            // Payment Success
+            await updateOrderPaymentStatus(orderId, 'paid');
+            await addPointsForPurchase(totalPrice);
+            Alert.alert('Success', 'Your order is confirmed!');
+            clearCart();
+            navigation.navigate('Home');
+          } else if (result && result.status_code === '11') {
+            Alert.alert('Failed', 'Payment failed or cancelled.');
+            clearCart();
+            navigation.navigate('Home');
+          } else if (result && result.status_code === '22') {
+            Alert.alert('Pending', 'Payment is pending.');
+            clearCart();
+            navigation.navigate('Home');
+          } else if (result && result.Error) {
+            Alert.alert('Payment Error', result.Error);
+          }
+        } catch (e) {
+          console.log('Error handling payment result', e);
+        }
+      });
+    } catch (e) {
+      console.log('Error placing online order', e);
+      Alert.alert('Error', 'Could not create your order. Please try again.');
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to proceed with checkout.');
+      navigation.navigate('Login');
+      return;
+    }
+
+    Alert.alert(
+      'Select Payment Method',
+      'How would you like to pay?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Cash Payment',
+          onPress: handleCashPayment,
+        },
+        {
+          text: 'Credit Card (Fiuu)',
+          onPress: handleFiuuPayment,
+        },
+      ],
+      {cancelable: true},
+    );
+  };
 
   const renderItem = ({item}: any) => (
     <View style={styles.cartItem}>
@@ -82,8 +229,8 @@ const CartScreen = ({navigation}: any) => {
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalAmount}>$ {totalPrice.toFixed(2)}</Text>
           </View>
-          <TouchableOpacity style={styles.checkoutBtn}>
-            <Text style={styles.checkoutBtnText}>Checkout</Text>
+          <TouchableOpacity style={styles.checkoutBtn} onPress={handleCheckout}>
+            <Text style={styles.checkoutBtnText}>Place Order</Text>
           </TouchableOpacity>
         </View>
       )}

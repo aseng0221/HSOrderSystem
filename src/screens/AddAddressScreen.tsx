@@ -4,12 +4,12 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   TextInput,
   ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';
@@ -135,7 +135,9 @@ const AddAddressScreen = ({navigation, route}: any) => {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.form}>
+      <ScrollView
+        contentContainerStyle={styles.form}
+        keyboardShouldPersistTaps="handled">
         <Text style={styles.label}>Address Nickname (e.g. Home, Office)</Text>
         <TextInput
           style={styles.input}

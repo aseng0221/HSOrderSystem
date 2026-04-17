@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {seedMenuData} from '../services/FirestoreSeeder';
-import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
   useEffect(() => {
@@ -10,7 +11,7 @@ const WelcomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to HSOrderSystem</Text>
+        <Text style={styles.title}>Welcome to NextDoor</Text>
         <Text style={styles.subtitle}>
           Your cross-platform ordering application.
         </Text>
