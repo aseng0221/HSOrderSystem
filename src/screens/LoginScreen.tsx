@@ -118,7 +118,7 @@ const LoginScreen = ({navigation}: any) => {
   const renderDefaultView = () => (
     <>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome to HS Order</Text>
+        <Text style={styles.title}>Welcome to NextDoor</Text>
         <Text style={styles.subtitle}>Enter your phone number</Text>
       </View>
 
