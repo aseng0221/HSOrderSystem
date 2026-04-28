@@ -24,8 +24,9 @@ import {
   Keyboard,
 } from 'react-native';
 
-import {clearStoredData} from '../utils/storage';
-import {KEYS} from '../config/keys';
+import {db} from '../services/firebase';
+import {getAuth} from '@react-native-firebase/auth';
+import {getCrashlytics} from '@react-native-firebase/crashlytics';
 import molpay from 'fiuu-mobile-xdk-reactnative';
 
 const AccountScreen = ({navigation}: any) => {
@@ -57,6 +58,7 @@ const AccountScreen = ({navigation}: any) => {
       Alert.alert('Error', 'Failed to seed data. Check console for details.');
     }
   };
+
 
   const handleSeedOrders = async () => {
     if (!user) {
@@ -103,125 +105,211 @@ const AccountScreen = ({navigation}: any) => {
       mp_closebutton_display: true,
     };
 
-    molpay.startMolpay(paymentDetails, async (data: string) => {
-      try {
-        const result = JSON.parse(data);
-        if (result.status_code === '00') {
-          // Payment Success
-          await updateWalletBalance(amount);
-          Alert.alert(
-            'Success',
-            `Successfully topped up RM ${amount.toFixed(2)} to your wallet.`,
-          );
-          setTopupAmount('');
-        } else if (result.status_code === '11') {
-          Alert.alert('Failed', 'Top-up payment failed or was cancelled.');
-        } else if (result.status_code === '22') {
-          Alert.alert('Pending', 'Top-up payment is pending.');
+    try {
+      molpay.startMolpay(paymentDetails, async (data: string) => {
+        try {
+          if (!data) {
+            console.log('No payment data received from SDK');
+            return;
+          }
+          
+          const result = JSON.parse(data);
+          if (result.status_code === '00') {
+            // Payment Success
+            await updateWalletBalance(amount);
+            Alert.alert(
+              'Success',
+              `Successfully topped up RM ${amount.toFixed(2)} to your wallet.`,
+            );
+            setTopupAmount('');
+          } else if (result.status_code === '11') {
+            Alert.alert('Failed', 'Top-up payment failed or was cancelled.');
+          } else if (result.status_code === '22') {
+            Alert.alert('Pending', 'Top-up payment is pending.');
+          } else {
+            console.log('Payment status unknown:', result.status_code);
+          }
+        } catch (e) {
+          console.error('Error parsing payment result:', e);
+          Alert.alert('Error', 'An error occurred while processing the payment result.');
         }
-      } catch (e) {
-        console.log('Error parsing payment result', e);
-      }
-    });
+      });
+    } catch (error) {
+      console.error('Molpay SDK execution error:', error);
+      Alert.alert('System Error', 'Could not open the payment gateway. Please try again.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>
-              {user?.phoneNumber?.slice(-1) ||
-                user?.email?.charAt(0).toUpperCase() ||
-                'U'}
-            </Text>
-          </View>
-          <Text style={styles.title}>Welcome!</Text>
-          <Text style={styles.subtitle}>
-            {user?.phoneNumber || user?.email}
-          </Text>
-
-          <View style={styles.walletContainer}>
-            <View>
-              <Text style={styles.walletLabel}>Wallet Balance</Text>
-              <Text style={styles.walletAmount}>
-                RM {walletBalance.toFixed(2)}
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {user?.phoneNumber?.slice(-1) ||
+                  user?.email?.charAt(0).toUpperCase() ||
+                  'U'}
               </Text>
             </View>
+            <Text style={styles.title}>Welcome!</Text>
+            <Text style={styles.subtitle}>
+              {user?.phoneNumber || user?.email}
+            </Text>
+  
+            <View style={styles.walletContainer}>
+              <View>
+                <Text style={styles.walletLabel}>Wallet Balance</Text>
+                <Text style={styles.walletAmount}>
+                  RM {walletBalance.toFixed(2)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.topupButton}
+                onPress={() => setTopupModalVisible(true)}>
+                <Text style={styles.topupButtonText}>Top Up</Text>
+              </TouchableOpacity>
+            </View>
+  
             <TouchableOpacity
-              style={styles.topupButton}
-              onPress={() => setTopupModalVisible(true)}>
-              <Text style={styles.topupButtonText}>Top Up</Text>
+              style={styles.seedButton}
+              onPress={handleSeedData}
+              disabled={isSeeding}>
+              {isSeeding ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <Text style={styles.seedButtonText}>Seed Sample Menu Data</Text>
+              )}
+            </TouchableOpacity>
+  
+            <TouchableOpacity
+              style={styles.seedButton}
+              onPress={handleSeedOrders}
+              disabled={isSeedingOrders}>
+              {isSeedingOrders ? (
+                <ActivityIndicator color={Colors.primary} />
+              ) : (
+                <Text style={styles.seedButtonText}>Seed Mock Orders</Text>
+              )}
+            </TouchableOpacity>
+
+          </View>
+  
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('OrderHistory')}>
+              <Icon name="history" size={24} color={Colors.primary} />
+              <Text style={styles.menuItemText}>Order History</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Icon
+                name="account-edit-outline"
+                size={24}
+                color={Colors.primary}
+              />
+              <Text style={styles.menuItemText}>Edit Profile</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Icon name="bell-outline" size={24} color={Colors.primary} />
+              <Text style={styles.menuItemText}>Notifications</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() =>
+                navigation.navigate('AddressSelection', {mode: 'manage'})
+              }>
+              <Icon name="map-marker-outline" size={24} color={Colors.primary} />
+              <Text style={styles.menuItemText}>Manage Addresses</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.seedButton}
-            onPress={handleSeedData}
-            disabled={isSeeding}>
-            {isSeeding ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : (
-              <Text style={styles.seedButtonText}>Seed Sample Menu Data</Text>
-            )}
-          </TouchableOpacity>
+          <View style={[styles.menuContainer, {marginTop: Spacing.lg}]}>
+            <Text style={styles.sectionTitle}>Diagnostic Tools</Text>
+            
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={async () => {
+                try {
+                  await getCrashlytics().setCrashlyticsCollectionEnabled(true);
+                  await getCrashlytics().setUserId(user?.uid || 'anonymous');
+                  await getCrashlytics().setAttribute('email', user?.email || 'none');
+                  getCrashlytics().log('Manual diagnostic ping sent from AccountScreen');
+                  Alert.alert('Success', 'Diagnostic ping sent! Check Firebase dashboard in 2-5 minutes.');
+                } catch (e: any) {
+                  Alert.alert('Error', e.message);
+                }
+              }}>
+              <Icon name="account-check" size={24} color={Colors.primary} />
+              <Text style={styles.menuItemText}>Identify & Send Log</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                try {
+                  getCrashlytics().recordError(new Error('CRASHLYTICS TEST: Non-fatal error for dashboard activation'));
+                  Alert.alert('Success', 'Non-fatal error sent! Restart the app to ensure upload.');
+                } catch (e: any) {
+                  Alert.alert('Error', e.message);
+                }
+              }}>
+              <Icon name="alert-circle" size={24} color={Colors.warning || '#FFCC00'} />
+              <Text style={styles.menuItemText}>Send Non-Fatal Error</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                console.log('Test crash button pressed');
+                Alert.alert(
+                  'Trigger Test Crash',
+                  'This will crash the app immediately. UNPLUG FROM DEBUGGER FIRST!',
+                  [
+                    {text: 'Cancel', style: 'cancel'},
+                    {
+                      text: 'Crash Now', 
+                      style: 'destructive', 
+                      onPress: () => {
+                        console.log('Executing getCrashlytics().crash()...');
+                        try {
+                          getCrashlytics().crash();
+                        } catch (e: any) {
+                          console.error('Crashlytics crash error:', e);
+                          Alert.alert('Module Error', e.message);
+                        }
+                      }
+                    },
+                  ]
+                );
+              }}>
+              <Icon name="bug" size={24} color={Colors.error || '#FF3B30'} />
+              <Text style={styles.menuItemText}>Trigger Test Crash</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+          </View>
+  
           <TouchableOpacity
-            style={styles.seedButton}
-            onPress={handleSeedOrders}
-            disabled={isSeedingOrders}>
-            {isSeedingOrders ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : (
-              <Text style={styles.seedButtonText}>Seed Mock Orders</Text>
-            )}
+            style={styles.logoutButton}
+            onPress={async () => {
+              await logout();
+              resetOrder();
+              await clearStoredData();
+            }}>
+            <Icon name="logout" size={20} color={Colors.error || '#FF3B30'} />
+            <Text style={styles.logoutButtonText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => navigation.navigate('OrderHistory')}>
-            <Icon name="history" size={24} color={Colors.primary} />
-            <Text style={styles.menuItemText}>Order History</Text>
-            <Icon name="chevron-right" size={24} color={Colors.grey} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Icon
-              name="account-edit-outline"
-              size={24}
-              color={Colors.primary}
-            />
-            <Text style={styles.menuItemText}>Edit Profile</Text>
-            <Icon name="chevron-right" size={24} color={Colors.grey} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuItem}>
-            <Icon name="bell-outline" size={24} color={Colors.primary} />
-            <Text style={styles.menuItemText}>Notifications</Text>
-            <Icon name="chevron-right" size={24} color={Colors.grey} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() =>
-              navigation.navigate('AddressSelection', {mode: 'manage'})
-            }>
-            <Icon name="map-marker-outline" size={24} color={Colors.primary} />
-            <Text style={styles.menuItemText}>Manage Addresses</Text>
-            <Icon name="chevron-right" size={24} color={Colors.grey} />
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={async () => {
-            await logout();
-            resetOrder();
-            await clearStoredData();
-          }}>
-          <Icon name="logout" size={20} color={Colors.error || '#FF3B30'} />
-          <Text style={styles.logoutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       <Modal
         visible={topupModalVisible}
@@ -267,11 +355,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
+  flex: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  content: {
     padding: Spacing.xl,
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   profileHeader: {
     alignItems: 'center',
@@ -390,9 +482,17 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: Colors.error || '#FF3B30',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: '600',
     marginLeft: Spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.grey,
+    textTransform: 'uppercase',
+    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
   },
   modalOverlay: {
     flex: 1,

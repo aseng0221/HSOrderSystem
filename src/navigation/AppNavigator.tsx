@@ -1,5 +1,4 @@
 import React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import View from 'react-native';
@@ -22,7 +21,9 @@ import {useOrder, OrderMode} from '../context/OrderContext';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 
 import {GiftCardScreen, RewardsScreen} from '../screens/PlaceholderScreens';
+import LegalDetailScreen from '../screens/LegalDetailScreen';
 import {Colors} from '../theme';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -45,11 +46,30 @@ const MainTabs = ({navigation}: any) => {
   return (
     <>
       <Tab.Navigator
-        screenOptions={{
+        screenOptions={({route}) => ({
           tabBarActiveTintColor: Colors.primary,
           tabBarInactiveTintColor: Colors.grey,
           headerShown: false,
-        }}>
+          tabBarIcon: ({focused, color, size}) => {
+            let iconName = '';
+
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Menu') {
+              iconName = focused
+                ? 'silverware-fork-knife'
+                : 'silverware-fork-knife';
+            } else if (route.name === 'Gift Card') {
+              iconName = focused ? 'gift' : 'gift-outline';
+            } else if (route.name === 'Rewards') {
+              iconName = focused ? 'star-circle' : 'star-circle-outline';
+            } else if (route.name === 'Account') {
+              iconName = focused ? 'account' : 'account-outline';
+            }
+
+            return <Icon name={iconName} size={size} color={color} />;
+          },
+        })}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen
           name="Menu"
@@ -82,9 +102,16 @@ const MainTabs = ({navigation}: any) => {
   );
 };
 
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
+
+export const navigationRef = createNavigationContainerRef();
+
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{headerShown: false}}>
@@ -106,11 +133,11 @@ const AppNavigator = () => {
           name="OrderHistoryDetail"
           component={OrderHistoryDetailScreen}
         />
-
-        {/* Auth Flow Stack */}
+        {/* Auth Flow & Legal Modal Group */}
         <Stack.Group screenOptions={{presentation: 'modal'}}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="OTP" component={OTPScreen} />
+          <Stack.Screen name="LegalDetail" component={LegalDetailScreen} />
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>

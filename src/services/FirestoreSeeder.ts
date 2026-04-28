@@ -211,16 +211,3 @@ export const seedMockOrders = async (userId: string) => {
     return {success: false, error};
   }
 };
-
-export const seedBranchesData = async () => {
-  try {
-    const branchesCol = collection(db, 'branches');
-    for (const branch of MOCK_BRANCHES) {
-      await setDoc(doc(db, 'branches', branch.id), branch);
-    }
-    return {success: true};
-  } catch (error) {
-    console.error('Error seeding branches:', error);
-    return {success: false, error};
-  }
-};

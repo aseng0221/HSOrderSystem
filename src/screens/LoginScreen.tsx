@@ -5,11 +5,12 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   Platform,
   Alert,
+  ScrollView,
+  Keyboard,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import auth, {signInWithPhoneNumber} from '@react-native-firebase/auth';
@@ -165,31 +166,51 @@ const LoginScreen = ({navigation}: any) => {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.content}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.closeButton}>
-              <Icon name="close" size={24} color={Colors.text} />
-            </TouchableOpacity>
+        style={styles.flex}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.content}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.closeButton}>
+                <Icon name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
 
-            {isBiometricView ? renderBiometricView() : renderDefaultView()}
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                By logging in or registering, you agree to our{' '}
-                <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-                <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
-                <Text style={styles.linkText}>
-                  Personal Data Protection Policy
-                </Text>
-              </Text>
-              <Text style={styles.versionText}>Version 5.5.19</Text>
+              {isBiometricView ? renderBiometricView() : renderDefaultView()}
             </View>
-          </View>
-        </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+        </ScrollView>
       </KeyboardAvoidingView>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          By logging in or registering, you agree to our{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => navigation.navigate('LegalDetail', {type: 'tos'})}>
+            Terms of Service
+          </Text>
+          ,{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() =>
+              navigation.navigate('LegalDetail', {type: 'privacy'})
+            }>
+            Privacy Policy
+          </Text>{' '}
+          and{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => navigation.navigate('LegalDetail', {type: 'pdpa'})}>
+            Personal Data Protection Policy
+          </Text>
+        </Text>
+        <Text style={styles.versionText}>Version 5.5.19</Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -202,9 +223,14 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
-    padding: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
   },
   closeButton: {
     marginTop: Spacing.sm,
@@ -352,10 +378,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    paddingBottom: 20,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.lg,
+    backgroundColor: Colors.white,
   },
   linkText: {
     color: '#007AFF',

@@ -25,11 +25,25 @@
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>nextdoor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>nextdoor</string>
 				<string>app-1-997148333257-ios-ff63d66c5cc02ae514a918</string>
 			</array>
 		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>grabpay</string>
+		<string>shopeepay</string>
+		<string>tngdigital</string>
+		<string>maybank2u</string>
+		<string>cimbclicks</string>
+		<string>fpx</string>
+		<string>fiuu</string>
+		<string>molpay</string>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>

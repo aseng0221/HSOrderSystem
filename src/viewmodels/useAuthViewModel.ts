@@ -5,7 +5,7 @@ import {
   FirebaseAuthTypes,
 } from '@react-native-firebase/auth';
 import {firebaseAuth} from '../services/firebase';
-import firestore from '@react-native-firebase/firestore';
+import {getFirestore, serverTimestamp, increment} from '@react-native-firebase/firestore';
 
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
@@ -21,18 +21,18 @@ export const useAuthViewModel = () => {
       if (userState) {
         // Synchronize user profile to Firestore whenever auth state is detected
         try {
-          await firestore().collection('users').doc(userState.uid).set(
+          await getFirestore().collection('users').doc(userState.uid).set(
             {
               phoneNumber: userState.phoneNumber,
-              lastLogin: firestore.FieldValue.serverTimestamp(),
+              lastLogin: serverTimestamp(),
               // Only set createdAt if it doesn't exist
-              createdAt: firestore.FieldValue.serverTimestamp(),
+              createdAt: serverTimestamp(),
             },
             {merge: true},
           );
 
           // Listen to wallet balance updates
-          unsubscribeProfile = firestore()
+          unsubscribeProfile = getFirestore()
             .collection('users')
             .doc(userState.uid)
             .onSnapshot(doc => {
@@ -71,11 +71,11 @@ export const useAuthViewModel = () => {
       return;
     }
     try {
-      await firestore()
+      await getFirestore()
         .collection('users')
         .doc(user.uid)
         .update({
-          walletBalance: firestore.FieldValue.increment(amount),
+          walletBalance: increment(amount),
         });
     } catch (error) {
       console.error('Error updating wallet balance:', error);

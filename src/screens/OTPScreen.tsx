@@ -5,11 +5,12 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Platform,
+  Alert,
+  ScrollView,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  Platform,
-  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing, BorderRadius} from '../theme';
@@ -79,76 +80,100 @@ const OTPScreen = ({navigation, route}: any) => {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.content}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}>
-              <Icon name="chevron-left" size={28} color={Colors.text} />
-            </TouchableOpacity>
+        style={styles.flex}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.content}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backButton}>
+                <Icon name="chevron-left" size={28} color={Colors.text} />
+              </TouchableOpacity>
 
-            <View style={styles.header}>
-              <View style={styles.logoPlaceholder}>
-                <Icon name="account-circle" size={80} color={Colors.primary} />
-              </View>
-              <Text style={styles.title}>Verification</Text>
-              <Text style={styles.subtitle}>
-                Enter the verification code we sent to your registered phone
-                number {phoneNumber}
-              </Text>
-            </View>
-
-            <View style={styles.otpContainer}>
-              {code.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={ref => (inputRefs.current[index] = ref)}
-                  style={styles.otpBox}
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={text => handleInputChange(text, index)}
-                  onKeyPress={e => handleKeyPress(e, index)}
-                  textAlign="center"
-                />
-              ))}
-            </View>
-
-            <View style={styles.resendContainer}>
-              <Text style={styles.resendText}>
-                Resend code in{' '}
-                <Text style={styles.timerText}>{formatTimer(timer)}</Text>
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.button,
-                (code.some(digit => digit === '') || loading) &&
-                  styles.buttonDisabled,
-              ]}
-              onPress={() => handleVerifyOTP(code.join(''))}
-              disabled={code.some(digit => digit === '') || loading}>
-              <Text style={styles.buttonText}>
-                {loading ? 'Verifying...' : 'Verify & Continue'}
-              </Text>
-            </TouchableOpacity>
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                By logging in or registering, you agree to our{' '}
-                <Text style={styles.linkText}>Terms of Service</Text>,{' '}
-                <Text style={styles.linkText}>Privacy Policy</Text> and{' '}
-                <Text style={styles.linkText}>
-                  Personal Data Protection Policy
+              <View style={styles.header}>
+                <View style={styles.logoPlaceholder}>
+                  <Icon
+                    name="account-circle"
+                    size={80}
+                    color={Colors.primary}
+                  />
+                </View>
+                <Text style={styles.title}>Verification</Text>
+                <Text style={styles.subtitle}>
+                  Enter the verification code we sent to your registered phone
+                  number {phoneNumber}
                 </Text>
-              </Text>
-              <Text style={styles.versionText}>Version 5.5.19</Text>
+              </View>
+
+              <View style={styles.otpContainer}>
+                {code.map((digit, index) => (
+                  <TextInput
+                    key={index}
+                    ref={ref => (inputRefs.current[index] = ref)}
+                    style={styles.otpBox}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    value={digit}
+                    onChangeText={text => handleInputChange(text, index)}
+                    onKeyPress={e => handleKeyPress(e, index)}
+                    textAlign="center"
+                  />
+                ))}
+              </View>
+
+              <View style={styles.resendContainer}>
+                <Text style={styles.resendText}>
+                  Resend code in{' '}
+                  <Text style={styles.timerText}>{formatTimer(timer)}</Text>
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  (code.some(digit => digit === '') || loading) &&
+                    styles.buttonDisabled,
+                ]}
+                onPress={() => handleVerifyOTP(code.join(''))}
+                disabled={code.some(digit => digit === '') || loading}>
+                <Text style={styles.buttonText}>
+                  {loading ? 'Verifying...' : 'Verify & Continue'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+        </ScrollView>
       </KeyboardAvoidingView>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          By logging in or registering, you agree to our{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => navigation.navigate('LegalDetail', {type: 'tos'})}>
+            Terms of Service
+          </Text>
+          ,{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() =>
+              navigation.navigate('LegalDetail', {type: 'privacy'})
+            }>
+            Privacy Policy
+          </Text>{' '}
+          and{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => navigation.navigate('LegalDetail', {type: 'pdpa'})}>
+            Personal Data Protection Policy
+          </Text>
+        </Text>
+        <Text style={styles.versionText}>Version 5.5.19</Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -161,9 +186,13 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
     flex: 1,
     padding: Spacing.xl,
+    paddingBottom: Spacing.xl * 2,
     alignItems: 'center',
   },
   backButton: {
@@ -237,9 +266,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   footer: {
-    position: 'absolute',
-    bottom: Spacing.xl,
-    width: '100%',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.lg,
+    backgroundColor: Colors.white,
     alignItems: 'center',
   },
   footerText: {

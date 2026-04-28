@@ -36,7 +36,7 @@ export const getCurrentLocation = (): Promise<{
   latitude: number;
   longitude: number;
 }> => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve) => {
     try {
       const isEmulator = await DeviceInfo.isEmulator();
       if (isEmulator) {
@@ -45,12 +45,18 @@ export const getCurrentLocation = (): Promise<{
         return resolve({latitude: 4.3995, longitude: 113.9914});
       }
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'ios') {
+        const auth = await Geolocation.requestAuthorization('whenInUse');
+        if (auth !== 'granted') {
+          console.warn('Geolocation permission not granted on iOS');
+          return resolve({latitude: 4.3995, longitude: 113.9914});
+        }
+      } else if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          // Fallback to Miri location or reject
+          console.warn('Geolocation permission not granted on Android');
           return resolve({latitude: 4.3995, longitude: 113.9914});
         }
       }
@@ -67,10 +73,15 @@ export const getCurrentLocation = (): Promise<{
           // Fallback to Miri center
           resolve({latitude: 4.3995, longitude: 113.9914});
         },
-        {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 10000,
+          distanceFilter: 10,
+        },
       );
     } catch (e) {
-      console.warn('Error checking emulator status:', e);
+      console.warn('Error in location retrieval:', e);
       resolve({latitude: 4.3995, longitude: 113.9914});
     }
   });
