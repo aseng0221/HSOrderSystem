@@ -17,7 +17,7 @@ interface OrderContextType {
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{children: ReactNode}> = ({children}) => {
-  const [orderMode, setOrderMode] = useState<OrderMode | null>(null);
+  const [orderMode, setOrderMode] = useState<OrderMode | null>('pickup');
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 

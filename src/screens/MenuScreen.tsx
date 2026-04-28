@@ -178,37 +178,7 @@ const MenuScreen = () => {
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.segmentedControl}>
-            <TouchableOpacity
-              style={[styles.segmentBtn, isDelivery && styles.segmentBtnActive]}
-              onPress={() =>
-                performActionOrRedirect(() => setOrderMode('delivery'))
-              }>
-              <Text
-                style={[
-                  styles.segmentText,
-                  isDelivery && styles.segmentTextActive,
-                ]}>
-                Delivery
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentBtn,
-                !isDelivery && styles.segmentBtnActive,
-              ]}
-              onPress={() =>
-                performActionOrRedirect(() => setOrderMode('pickup'))
-              }>
-              <Text
-                style={[
-                  styles.segmentText,
-                  !isDelivery && styles.segmentTextActive,
-                ]}>
-                Pickup
-              </Text>
-            </TouchableOpacity>
-          </View>
+
         </View>
 
         {isAuthenticated && (
@@ -265,13 +235,7 @@ const MenuScreen = () => {
           </View>
         )}
 
-        <View style={styles.promoBanner}>
-          <Icon name="bullhorn-outline" size={18} color={Colors.primary} />
-          <Text style={styles.promoText}>
-            🧨 Extra <Text style={{fontWeight: 'bold'}}>ONG</Text> with ZUS Tea
-            RM6.80, all day!
-          </Text>
-        </View>
+
       </View>
     );
   };
@@ -403,18 +367,18 @@ const MenuScreen = () => {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() =>
-          performActionOrRedirect(() => navigation.navigate('Cart'))
-        }>
-        <Icon name="cart" size={28} color={Colors.white} />
-        {totalItems > 0 && (
+      {totalItems > 0 && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() =>
+            performActionOrRedirect(() => navigation.navigate('Cart'))
+          }>
+          <Icon name="cart" size={28} color={Colors.white} />
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{totalItems}</Text>
           </View>
-        )}
-      </TouchableOpacity>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };

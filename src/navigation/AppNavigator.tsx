@@ -76,14 +76,10 @@ const MainTabs = ({navigation}: any) => {
           component={MenuScreen}
           listeners={{
             tabPress: e => {
-              if (
-                isAuthenticated &&
-                (!orderMode ||
-                  (orderMode === 'pickup' && !selectedBranch) ||
-                  (orderMode === 'delivery' && !selectedAddress))
-              ) {
+              if (isAuthenticated && !selectedBranch) {
                 e.preventDefault();
-                setModalVisible(true);
+                setOrderMode('pickup');
+                navigation.navigate('BranchSelection');
               }
             },
           }}

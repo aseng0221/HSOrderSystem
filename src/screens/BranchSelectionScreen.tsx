@@ -203,7 +203,7 @@ const BranchSelectionScreen = ({navigation}: any) => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        // provider={PROVIDER_GOOGLE}
+        mapPadding={{ top: 0, right: 0, bottom: 300, left: 0 }}
       >
         {userLocation && (
           <Marker
@@ -233,7 +233,7 @@ const BranchSelectionScreen = ({navigation}: any) => {
                 currentIndex === index && styles.activeMarker,
               ]}>
               <View style={styles.markerCircle}>
-                <Text style={styles.markerText}>Z</Text>
+                <Text style={styles.markerText}>N</Text>
               </View>
               <View style={styles.markerPointer} />
             </View>

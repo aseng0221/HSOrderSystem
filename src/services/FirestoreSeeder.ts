@@ -3,6 +3,8 @@ import {
   doc,
   setDoc,
   addDoc,
+  getDocs,
+  deleteDoc,
 } from '@react-native-firebase/firestore';
 import {db} from './firebase';
 import {MOCK_BRANCHES} from '../constants/branches';
@@ -33,8 +35,8 @@ export const seedMenuData = async () => {
     // 1. Add Categories
     const categories = [
       {id: 'lepak', name: 'Lepak & Moreh', icon: 'coffee', order: 1},
-      {id: 'tea', name: 'ZUS Tea Series', icon: 'tea', order: 2},
-      {id: 'bb', name: 'ZUS BB', icon: 'bottle-wine-outline', order: 3},
+      {id: 'tea', name: 'NextDoor Tea Series', icon: 'tea', order: 2},
+      {id: 'bb', name: 'NextDoor BB', icon: 'bottle-wine-outline', order: 3},
       {id: 'grape', name: 'Grape Series', icon: 'fruit-grapes', order: 4},
       {id: 'meowtcha', name: 'Meowtcha Series', icon: 'cat', order: 5},
       {id: 'picks', name: 'Top Picks', icon: 'heart-outline', order: 6},
@@ -81,7 +83,7 @@ export const seedMenuData = async () => {
       },
       {
         categoryId: 'tea',
-        name: 'ZUS Tea - Peach',
+        name: 'NextDoor Tea - Peach',
         tag: 'REFRESHING',
         price: 'RM 6.80',
         order: 1,
@@ -110,10 +112,41 @@ export const seedMenuData = async () => {
       await addDoc(productsCol, prod);
     }
 
+    // 3. Add Branches
+    await seedBranchData();
+
     return {success: true};
   } catch (error) {
     console.error('Error seeding data:', error);
     return {success: false, error};
+  }
+};
+
+export const seedBranchData = async () => {
+  try {
+    const branchesCol = collection(db, 'branches');
+    
+    // First, delete all existing branches to clean up old data
+    const existingBranches = await getDocs(branchesCol);
+    for (const document of existingBranches.docs) {
+      await deleteDoc(doc(db, 'branches', document.id));
+    }
+    console.log('Old branches cleared.');
+
+    // Now, add the new single branch
+    for (const branch of MOCK_BRANCHES) {
+      await setDoc(doc(db, 'branches', branch.id), {
+        name: branch.name,
+        address: branch.address,
+        latitude: branch.latitude,
+        longitude: branch.longitude,
+        openTime: branch.openTime,
+        closeTime: branch.closeTime,
+      });
+    }
+    console.log('Branches seeded successfully');
+  } catch (error) {
+    console.error('Error seeding branches:', error);
   }
 };
 

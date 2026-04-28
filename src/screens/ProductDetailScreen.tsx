@@ -16,12 +16,19 @@ import {useCart} from '../context/CartContext';
 const {width} = Dimensions.get('window');
 
 const ProductDetailScreen = ({route, navigation}: any) => {
-  const {product, globalOptions: allGlobalOptions} = route.params;
-  const {addItem} = useCart();
-  const [quantity, setQuantity] = useState(1);
+  const {
+    product, 
+    globalOptions: allGlobalOptions,
+    cartItemId,
+    initialQuantity,
+    initialSelectedOptions
+  } = route.params;
+  
+  const {addItem, removeItem} = useCart();
+  const [quantity, setQuantity] = useState(initialQuantity || 1);
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string[]>
-  >({});
+  >(initialSelectedOptions || {});
 
   // Resolve Global Options (Option B)
   const resolvedOptions = useMemo(() => {
@@ -84,8 +91,11 @@ const ProductDetailScreen = ({route, navigation}: any) => {
   };
 
   const handleAddToCart = () => {
+    if (cartItemId) {
+      removeItem(cartItemId);
+    }
     addItem({
-      id: `${product.id}-${Date.now()}`,
+      id: cartItemId || `${product.id}-${Date.now()}`,
       product,
       quantity,
       selectedOptions,
@@ -208,7 +218,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
             <Text style={styles.buyBtnText}>Buy Now</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
-            <Text style={styles.cartBtnText}>Add To Cart</Text>
+            <Text style={styles.cartBtnText}>{cartItemId ? 'Update Cart' : 'Add To Cart'}</Text>
           </TouchableOpacity>
         </View>
       </View>
