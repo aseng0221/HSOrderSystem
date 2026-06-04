@@ -23,7 +23,7 @@ const SplashScreen = ({navigation}: any) => {
     <View style={styles.container}>
       <Animated.View style={{opacity: fadeAnim}}>
         <Text style={styles.logo}>NextDoor</Text>
-        <Text style={styles.title}>Your day made better</Text>
+        <Text style={styles.title}>Made your day better</Text>
       </Animated.View>
     </View>
   );
