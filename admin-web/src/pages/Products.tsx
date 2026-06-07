@@ -33,6 +33,7 @@ interface Product {
   description?: string;
   image?: string;
   globalOptions?: string[]; // IDs of global option groups
+  imageOverrides?: Record<string, string>; // Maps option ID to image URL
 }
 
 const Products = () => {
@@ -48,6 +49,7 @@ const Products = () => {
     order: 0,
     description: '',
     globalOptions: [],
+    imageOverrides: {},
   });
   const [uploading, setUploading] = useState(false);
 
@@ -101,6 +103,7 @@ const Products = () => {
         order: (products?.length || 0) + 1,
         description: '',
         globalOptions: [],
+        imageOverrides: {},
       });
     }
     setIsModalOpen(true);
@@ -575,6 +578,55 @@ const Products = () => {
                   )}
                 </div>
               </div>
+
+              {formData.globalOptions && formData.globalOptions.length > 0 && (
+                <div className="form-group" style={{marginTop: '1.5rem'}}>
+                  <label style={{marginBottom: '0.75rem', display: 'block'}}>
+                    Option Image Overrides
+                  </label>
+                  <div
+                    style={{
+                      background: '#f8f9fa',
+                      padding: '1rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                    }}>
+                    <p style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem'}}>
+                      Provide a specific image URL for certain options (e.g. Hot or Cold).
+                    </p>
+
+                    {allGlobalOptions
+                      ?.filter(group => formData.globalOptions?.includes(group.id))
+                      .map(group => (
+                        <div key={group.id} style={{marginBottom: '1.5rem'}}>
+                          <h4 style={{fontSize: '0.9rem', marginBottom: '0.5rem', color: 'var(--text)'}}>{group.name}</h4>
+                          {group.options.map((opt: {id: string, name: string}) => (
+                            <div key={opt.id} style={{display: 'flex', gap: '1rem', marginBottom: '0.75rem', alignItems: 'center'}}>
+                              <span style={{flex: 1, fontSize: '0.875rem'}}>{opt.name}</span>
+                              <input
+                                type="text"
+                                className="form-control"
+                                style={{flex: 2}}
+                                placeholder="Image URL (https://...)"
+                                value={formData.imageOverrides?.[opt.id] || ''}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    imageOverrides: {
+                                      ...(prev.imageOverrides || {}),
+                                      [opt.id]: val
+                                    }
+                                  }));
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
 
               <div style={{display: 'flex', gap: '1rem', marginTop: '2rem'}}>
                 <button

@@ -46,6 +46,7 @@ export interface Product {
   ingredients?: ProductIngredient[];
   nutritionInfo?: string; // e.g. "90% real grape"
   globalOptions?: string[]; // IDs of global option groups (Option B)
+  imageOverrides?: Record<string, string>; // Maps option ID to image URL
 }
 
 export const useMenuViewModel = () => {

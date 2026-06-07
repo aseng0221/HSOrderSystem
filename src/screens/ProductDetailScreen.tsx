@@ -37,6 +37,18 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       .filter(Boolean);
   }, [product, allGlobalOptions]);
 
+  const displayImage = useMemo(() => {
+    if (product.imageOverrides) {
+      const selectedOptIds = Object.values(selectedOptions).flat() as string[];
+      for (const optId of selectedOptIds) {
+        if (product.imageOverrides[optId]) {
+          return product.imageOverrides[optId];
+        }
+      }
+    }
+    return product.image || 'https://via.placeholder.com/300';
+  }, [product.image, product.imageOverrides, selectedOptions]);
+
   const {unitPrice, totalPrice} = useMemo(() => {
     let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
     let optionsPrice = 0;
@@ -117,7 +129,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
-            source={{uri: product.image || 'https://via.placeholder.com/300'}}
+            source={{uri: displayImage}}
             style={styles.image}
             resizeMode="cover"
           />
