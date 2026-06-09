@@ -18,6 +18,7 @@ export interface ProductOption {
   id: string;
   name: string;
   price?: number; // Added price (e.g., +0.90)
+  isDefault?: boolean;
 }
 
 export interface ProductOptionGroup {
@@ -26,6 +27,8 @@ export interface ProductOptionGroup {
   type: 'pick_one' | 'multi_select' | 'boolean';
   maxSelections?: number;
   options: ProductOption[];
+  order?: number;
+  isRequired?: boolean;
 }
 
 export interface ProductIngredient {
