@@ -162,6 +162,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
+            key={displayImage} // Force re-render on image change
             source={{uri: displayImage}}
             style={styles.image}
             resizeMode="cover"
