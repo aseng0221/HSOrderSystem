@@ -1,7 +1,8 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import View from 'react-native';
+import {View, Platform, StyleSheet} from 'react-native';
+import {BlurView} from '@react-native-community/blur';
 
 import SplashScreen from '../screens/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -47,9 +48,35 @@ const MainTabs = ({navigation}: any) => {
     <>
       <Tab.Navigator
         screenOptions={({route}) => ({
-          tabBarActiveTintColor: Colors.primary,
-          tabBarInactiveTintColor: Colors.grey,
+          tabBarActiveTintColor: Platform.OS === 'ios' ? Colors.text : Colors.primary,
+          tabBarInactiveTintColor: Platform.OS === 'ios' ? Colors.text : Colors.grey,
           headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: Platform.OS === 'ios' ? {
+            position: 'absolute',
+            bottom: 30,
+            left: 20,
+            right: 20,
+            elevation: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            borderRadius: 30,
+            height: 60,
+            borderTopWidth: 0,
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: 10,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 10,
+          } : undefined,
+          tabBarBackground: Platform.OS === 'ios' ? () => (
+            <BlurView
+              blurType="light"
+              blurAmount={20}
+              style={[StyleSheet.absoluteFill, { borderRadius: 30 }]}
+            />
+          ) : undefined,
           tabBarIcon: ({focused, color, size}) => {
             let iconName = '';
 
@@ -67,7 +94,21 @@ const MainTabs = ({navigation}: any) => {
               iconName = focused ? 'account' : 'account-outline';
             }
 
-            return <Icon name={iconName} size={size} color={color} />;
+            return (
+              <View
+                style={
+                  Platform.OS === 'ios' && focused
+                    ? {
+                        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                        paddingHorizontal: 20,
+                        paddingVertical: 10,
+                        borderRadius: 20,
+                      }
+                    : {}
+                }>
+                <Icon name={iconName} size={size} color={color} />
+              </View>
+            );
           },
         })}>
         <Tab.Screen name="Home" component={HomeScreen} />

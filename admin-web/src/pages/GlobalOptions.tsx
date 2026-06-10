@@ -16,6 +16,7 @@ interface OptionItem {
   id: string;
   name: string;
   price: string;
+  isDefault?: boolean;
 }
 
 interface OptionGroup {
@@ -23,6 +24,8 @@ interface OptionGroup {
   name: string;
   type: 'pick_one' | 'multi_select' | 'boolean';
   options: OptionItem[];
+  order?: number;
+  isRequired?: boolean;
 }
 
 const GlobalOptions = () => {
@@ -35,7 +38,7 @@ const GlobalOptions = () => {
   });
 
   const globalOptionsRef = collection(db, 'global_options');
-  const q = query(globalOptionsRef, orderBy('name', 'asc'));
+  const q = query(globalOptionsRef, orderBy('order', 'asc'));
   const [snapshot, loading, error] = useCollection(q);
   const groups = snapshot?.docs.map(
     doc => ({id: doc.id, ...doc.data()} as OptionGroup),
@@ -50,7 +53,9 @@ const GlobalOptions = () => {
       setFormData({
         name: '',
         type: 'pick_one',
-        options: [{id: Date.now().toString(), name: '', price: '0'}],
+        options: [{id: Date.now().toString(), name: '', price: '0', isDefault: false}],
+        order: (groups?.length || 0) + 1,
+        isRequired: false,
       });
     }
     setIsModalOpen(true);
@@ -61,7 +66,7 @@ const GlobalOptions = () => {
       ...formData,
       options: [
         ...formData.options,
-        {id: Date.now().toString(), name: '', price: '0'},
+        {id: Date.now().toString(), name: '', price: '0', isDefault: false},
       ],
     });
   };
@@ -110,8 +115,10 @@ const GlobalOptions = () => {
         <table className="data-table">
           <thead>
             <tr>
+              <th>Order</th>
               <th>Group Name</th>
               <th>Type</th>
+              <th>Mandatory</th>
               <th>Options Count</th>
               <th>Actions</th>
             </tr>
@@ -119,6 +126,7 @@ const GlobalOptions = () => {
           <tbody>
             {groups?.map(group => (
               <tr key={group.id}>
+                <td style={{fontWeight: 'bold'}}>{group.order || 0}</td>
                 <td>
                   <span style={{fontWeight: '600'}}>{group.name}</span>
                 </td>
@@ -136,6 +144,13 @@ const GlobalOptions = () => {
                     }}>
                     {group.type.replace('_', ' ')}
                   </span>
+                </td>
+                <td>
+                  {group.isRequired ? (
+                    <span style={{color: 'var(--success)', fontWeight: 'bold'}}>Yes</span>
+                  ) : (
+                    <span style={{color: 'var(--text-secondary)'}}>No</span>
+                  )}
                 </td>
                 <td>{group.options.length} options</td>
                 <td>
@@ -207,6 +222,40 @@ const GlobalOptions = () => {
                 </div>
               </div>
 
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginTop: '1rem',
+                }}>
+                <div className="form-group">
+                  <label>Display Order</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    required
+                    value={formData.order || 0}
+                    onChange={e =>
+                      setFormData({...formData, order: parseInt(e.target.value) || 0})
+                    }
+                  />
+                </div>
+                <div className="form-group" style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginTop: '1.5rem'}}>
+                    <input
+                      type="checkbox"
+                      checked={formData.isRequired || false}
+                      onChange={e =>
+                        setFormData({...formData, isRequired: e.target.checked})
+                      }
+                      style={{transform: 'scale(1.2)'}}
+                    />
+                    <span style={{fontWeight: 'bold'}}>Mandatory Selection</span>
+                  </label>
+                </div>
+              </div>
+
               <div style={{marginTop: '1.5rem'}}>
                 <div
                   style={{
@@ -268,6 +317,20 @@ const GlobalOptions = () => {
                             setFormData({...formData, options: newOptions});
                           }}
                         />
+                      </div>
+                      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: '80px'}}>
+                        <label style={{display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer'}}>
+                          <input
+                            type="checkbox"
+                            checked={opt.isDefault || false}
+                            onChange={e => {
+                              const newOptions = [...formData.options];
+                              newOptions[index].isDefault = e.target.checked;
+                              setFormData({...formData, options: newOptions});
+                            }}
+                          />
+                          <span style={{fontSize: '0.75rem'}}>Default</span>
+                        </label>
                       </div>
                       <button
                         type="button"

@@ -18,6 +18,7 @@ export interface ProductOption {
   id: string;
   name: string;
   price?: number; // Added price (e.g., +0.90)
+  isDefault?: boolean;
 }
 
 export interface ProductOptionGroup {
@@ -26,6 +27,8 @@ export interface ProductOptionGroup {
   type: 'pick_one' | 'multi_select' | 'boolean';
   maxSelections?: number;
   options: ProductOption[];
+  order?: number;
+  isRequired?: boolean;
 }
 
 export interface ProductIngredient {
@@ -46,6 +49,7 @@ export interface Product {
   ingredients?: ProductIngredient[];
   nutritionInfo?: string; // e.g. "90% real grape"
   globalOptions?: string[]; // IDs of global option groups (Option B)
+  imageOverrides?: Record<string, string>; // Maps option ID to image URL
 }
 
 export const useMenuViewModel = () => {

@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo, useEffect} from 'react';
 import {
   View,
   Text,
@@ -32,10 +32,45 @@ const ProductDetailScreen = ({route, navigation}: any) => {
 
   // Resolve Global Options (Option B)
   const resolvedOptions = useMemo(() => {
-    return (product.globalOptions || [])
+    const opts = (product.globalOptions || [])
       .map((id: string) => allGlobalOptions?.find((g: any) => g.id === id))
       .filter(Boolean);
+
+    // Sort by order
+    return opts.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
   }, [product, allGlobalOptions]);
+
+  // Handle Default Options Initialization
+  useEffect(() => {
+    if (!initialSelectedOptions) {
+      const defaultSelections: Record<string, string[]> = {};
+      resolvedOptions.forEach((group: any) => {
+        const defaultOpts = group.options.filter((o: any) => o.isDefault);
+        if (defaultOpts.length > 0) {
+          if (group.type === 'pick_one' || group.type === 'boolean') {
+            defaultSelections[group.id] = [defaultOpts[0].id];
+          } else {
+            defaultSelections[group.id] = defaultOpts.map((o: any) => o.id);
+          }
+        }
+      });
+      if (Object.keys(defaultSelections).length > 0) {
+        setSelectedOptions(defaultSelections);
+      }
+    }
+  }, [resolvedOptions, initialSelectedOptions]);
+
+  const displayImage = useMemo(() => {
+    if (product.imageOverrides) {
+      const selectedOptIds = Object.values(selectedOptions).flat() as string[];
+      for (const optId of selectedOptIds) {
+        if (product.imageOverrides[optId]) {
+          return product.imageOverrides[optId];
+        }
+      }
+    }
+    return product.image || 'https://via.placeholder.com/300';
+  }, [product.image, product.imageOverrides, selectedOptions]);
 
   const {unitPrice, totalPrice} = useMemo(() => {
     let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
@@ -72,13 +107,23 @@ const ProductDetailScreen = ({route, navigation}: any) => {
     type: string,
     max?: number,
   ) => {
+    const group = resolvedOptions.find((g: any) => g.id === groupId);
+    const isRequired = group?.isRequired;
+
     setSelectedOptions(prev => {
       const current = prev[groupId] || [];
       if (type === 'pick_one' || type === 'boolean') {
+        if (current.includes(optionId)) {
+          // If clicking the already selected option and it's mandatory, do nothing (prevent deselect)
+          if (isRequired) return prev;
+          // Otherwise toggle off
+          return {...prev, [groupId]: []};
+        }
         return {...prev, [groupId]: [optionId]};
       }
       if (type === 'multi_select') {
         if (current.includes(optionId)) {
+          if (isRequired && current.length === 1) return prev;
           return {...prev, [groupId]: current.filter(id => id !== optionId)};
         }
         if (max && current.length >= max) {
@@ -117,7 +162,8 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
-            source={{uri: product.image || 'https://via.placeholder.com/300'}}
+            key={displayImage} // Force re-render on image change
+            source={{uri: displayImage}}
             style={styles.image}
             resizeMode="cover"
           />
@@ -133,7 +179,8 @@ const ProductDetailScreen = ({route, navigation}: any) => {
             <View key={group.id} style={styles.optionGroup}>
               <View style={styles.groupHeader}>
                 <Text style={styles.groupName}>
-                  {group.name} <Icon name="information-outline" size={14} />
+                  {group.name} {group.isRequired ? <Text style={{color: 'red'}}>*</Text> : null}
+                  <Icon name="information-outline" size={14} />
                 </Text>
                 <Text style={styles.selectionType}>
                   {group.type === 'pick_one'
