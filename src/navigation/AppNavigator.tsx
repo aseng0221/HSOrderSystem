@@ -19,6 +19,7 @@ import OrderHistoryDetailScreen from '../screens/OrderHistoryDetailScreen';
 import OrderModeModal from '../components/OrderModeModal';
 import {useOrder, OrderMode} from '../context/OrderContext';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
+import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 
 import {GiftCardScreen, RewardsScreen} from '../screens/PlaceholderScreens';
 import LegalDetailScreen from '../screens/LegalDetailScreen';
@@ -133,6 +134,7 @@ const AppNavigator = () => {
         <Stack.Group screenOptions={{presentation: 'modal'}}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="OTP" component={OTPScreen} />
+          <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
           <Stack.Screen name="LegalDetail" component={LegalDetailScreen} />
         </Stack.Group>
       </Stack.Navigator>

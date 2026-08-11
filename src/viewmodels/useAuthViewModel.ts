@@ -10,6 +10,7 @@ import {getFirestore, serverTimestamp, increment} from '@react-native-firebase/f
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export const useAuthViewModel = () => {
               if (doc.exists) {
                 const data = doc.data();
                 setWalletBalance(data?.walletBalance || 0);
+                setProfileCompleted(!!data?.displayName && !!data?.phoneNumber);
               }
             });
         } catch (error) {
@@ -46,6 +48,7 @@ export const useAuthViewModel = () => {
         }
       } else {
         setWalletBalance(0);
+        setProfileCompleted(false);
       }
       setLoading(false);
     });
@@ -86,8 +89,9 @@ export const useAuthViewModel = () => {
   return {
     user,
     walletBalance,
+    profileCompleted,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && user.emailVerified && profileCompleted,
     logout,
     updateWalletBalance,
   };

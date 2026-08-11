@@ -13,14 +13,16 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import auth, {signInWithPhoneNumber} from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import {getSavedPhone, clearStoredData} from '../utils/storage';
 
 const LoginScreen = ({navigation}: any) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [savedPhone, setSavedPhone] = useState<string | null>(null);
   const [isBiometricView, setIsBiometricView] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -61,31 +63,6 @@ const LoginScreen = ({navigation}: any) => {
     }
   };
 
-  const handleSendOTP = async () => {
-    if (phoneNumber.length < 9) {
-      Alert.alert('Invalid Number', 'Please enter a valid phone number.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const formattedNumber = phoneNumber.startsWith('+')
-        ? phoneNumber
-        : `+60${phoneNumber}`;
-
-      const confirmation = await signInWithPhoneNumber(auth(), formattedNumber);
-      navigation.navigate('OTP', {confirmation, phoneNumber: formattedNumber});
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to send OTP. Please try again.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const renderBiometricView = () => (
     <View style={styles.biometricContent}>
       <View style={styles.avatarLarge}>
@@ -120,44 +97,127 @@ const LoginScreen = ({navigation}: any) => {
     <>
       <View style={styles.header}>
         <Text style={styles.title}>Welcome to NextDoor</Text>
-        <Text style={styles.subtitle}>Enter your phone number</Text>
+        <Text style={styles.subtitle}>Sign in or create an account</Text>
       </View>
 
       <View style={styles.inputContainer}>
-        <View style={styles.countryCode}>
-          <Text style={styles.countryCodeText}>+60</Text>
-        </View>
+        <Icon name="email-outline" size={24} color={Colors.grey} style={{marginRight: 10}} />
         <TextInput
           style={styles.input}
-          placeholder="Phone Number"
+          placeholder="Email Address"
           placeholderTextColor={Colors.grey}
-          keyboardType="phone-pad"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
           autoFocus={!isBiometricView}
         />
       </View>
 
-      <Text style={styles.deliveryMethodLabel}>receive 6-digit code via</Text>
-
-      <TouchableOpacity
-        style={styles.whatsappButton}
-        onPress={handleSendOTP}
-        disabled={loading}>
-        <Icon name="whatsapp" size={24} color={Colors.white} />
-        <Text style={styles.buttonText}>Whatsapp</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.smsButton}
-        onPress={handleSendOTP}
-        disabled={loading}>
-        <Icon
-          name="message-processing-outline"
-          size={24}
-          color={Colors.white}
+      <View style={styles.inputContainer}>
+        <Icon name="lock-outline" size={24} color={Colors.grey} style={{marginRight: 10}} />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor={Colors.grey}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
-        <Text style={styles.buttonText}>SMS</Text>
+      </View>
+
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <TouchableOpacity
+          style={[styles.button, {flex: 1, marginRight: Spacing.sm}, loading && styles.buttonDisabled]}
+          onPress={async () => {
+            if (!email || !password) {
+              Alert.alert('Incomplete', 'Please enter both email and password.');
+              return;
+            }
+            setLoading(true);
+            try {
+              const userCredential = await auth().signInWithEmailAndPassword(email, password);
+              const user = userCredential.user;
+              await user.reload();
+
+              if (!user.emailVerified) {
+                await auth().signOut();
+                Alert.alert(
+                  'Email Not Verified',
+                  'Please verify your email address to continue.',
+                  [
+                    {text: 'Cancel', style: 'cancel'},
+                    {text: 'Resend Email', onPress: () => user.sendEmailVerification()}
+                  ]
+                );
+                setLoading(false);
+                return;
+              }
+
+              const userDoc = await firestore().collection('users').doc(user.uid).get();
+              const userData = userDoc.data();
+              if (!userData?.displayName || !userData?.phoneNumber) {
+                navigation.navigate('ProfileSetup');
+              } else {
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'MainTabs'}],
+                });
+              }
+            } catch (error: any) {
+              console.error(error);
+              Alert.alert('Login Failed', error.message || 'Authentication failed. Please try again.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Wait...' : 'Log In'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, {flex: 1, marginLeft: Spacing.sm, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.primary}, loading && styles.buttonDisabled]}
+          onPress={async () => {
+            if (!email || !password) {
+              Alert.alert('Incomplete', 'Please enter both email and password.');
+              return;
+            }
+            setLoading(true);
+            try {
+              const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+              await userCredential.user.sendEmailVerification();
+              await auth().signOut();
+              Alert.alert(
+                'Account Created',
+                'A verification email has been sent to your address. Please verify it before logging in.',
+              );
+            } catch (error: any) {
+              console.error(error);
+              Alert.alert('Sign Up Failed', error.message || 'Registration failed. Please try again.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={loading}>
+          <Text style={[styles.buttonText, {color: Colors.primary}]}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        style={{marginTop: Spacing.lg, alignItems: 'center'}}
+        onPress={async () => {
+          if (!email) {
+            Alert.alert('Reset Password', 'Please enter your email address above to reset your password.');
+            return;
+          }
+          try {
+            await auth().sendPasswordResetEmail(email);
+            Alert.alert('Email Sent', 'Password reset instructions have been sent to your email.');
+          } catch (error: any) {
+            Alert.alert('Error', error.message);
+          }
+        }}>
+        <Text style={styles.otherMethodText}>Forgot Password?</Text>
       </TouchableOpacity>
     </>
   );
