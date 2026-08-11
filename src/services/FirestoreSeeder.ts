@@ -125,7 +125,7 @@ export const seedMenuData = async () => {
 export const seedBranchData = async () => {
   try {
     const branchesCol = collection(db, 'branches');
-    
+
     // First, delete all existing branches to clean up old data
     const existingBranches = await getDocs(branchesCol);
     for (const document of existingBranches.docs) {

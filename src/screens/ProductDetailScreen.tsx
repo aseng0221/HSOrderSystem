@@ -17,13 +17,13 @@ const {width} = Dimensions.get('window');
 
 const ProductDetailScreen = ({route, navigation}: any) => {
   const {
-    product, 
+    product,
     globalOptions: allGlobalOptions,
     cartItemId,
     initialQuantity,
-    initialSelectedOptions
+    initialSelectedOptions,
   } = route.params;
-  
+
   const {addItem, removeItem} = useCart();
   const [quantity, setQuantity] = useState(initialQuantity || 1);
   const [selectedOptions, setSelectedOptions] = useState<
@@ -218,7 +218,9 @@ const ProductDetailScreen = ({route, navigation}: any) => {
             <Text style={styles.buyBtnText}>Buy Now</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
-            <Text style={styles.cartBtnText}>{cartItemId ? 'Update Cart' : 'Add To Cart'}</Text>
+            <Text style={styles.cartBtnText}>
+              {cartItemId ? 'Update Cart' : 'Add To Cart'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

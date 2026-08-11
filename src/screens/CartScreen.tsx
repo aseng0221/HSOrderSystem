@@ -25,15 +25,37 @@ import {KEYS} from '../config/keys';
 import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
 
 const PAYMENT_METHODS = [
-  {id: 'nextdoor_balance', title: 'NextDoor Balance', subtitle: '(RM 6.65)', label: 'Recommended', icon: 'wallet-outline'},
-  {id: 'online_banking', title: 'Online Banking', subtitle: '', icon: 'bank-outline'},
-  {id: 'ewallet', title: 'E-Wallet', subtitle: 'ShopeePay / SPayLater', icon: 'cellphone-nfc'},
-  {id: 'credit_card', title: 'Credit / Debit Card', subtitle: '', icon: 'credit-card-outline'},
+  {
+    id: 'nextdoor_balance',
+    title: 'NextDoor Balance',
+    subtitle: '(RM 6.65)',
+    label: 'Recommended',
+    icon: 'wallet-outline',
+  },
+  {
+    id: 'online_banking',
+    title: 'Online Banking',
+    subtitle: '',
+    icon: 'bank-outline',
+  },
+  {
+    id: 'ewallet',
+    title: 'E-Wallet',
+    subtitle: 'ShopeePay / SPayLater',
+    icon: 'cellphone-nfc',
+  },
+  {
+    id: 'credit_card',
+    title: 'Credit / Debit Card',
+    subtitle: '',
+    icon: 'credit-card-outline',
+  },
   {id: 'apple_pay', title: 'Apple Pay', subtitle: '', icon: 'apple'},
 ];
 
 const CartScreen = ({navigation}: any) => {
-  const {cart, totalPrice, updateQuantity, removeItem, clearCart, addItem} = useCart();
+  const {cart, totalPrice, updateQuantity, removeItem, clearCart, addItem} =
+    useCart();
   const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {user} = useAuthViewModel();
@@ -49,7 +71,7 @@ const CartScreen = ({navigation}: any) => {
   const [remarks, setRemarks] = useState('');
   const [needStraws, setNeedStraws] = useState(false);
   const [needPaperBag, setNeedPaperBag] = useState(false);
-  
+
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[2]); // Default E-Wallet
 
@@ -67,9 +89,9 @@ const CartScreen = ({navigation}: any) => {
     }
 
     if (selectedPayment.id === 'nextdoor_balance') {
-       handleCashPayment(); // Mocking NextDoor balance as instant
+      handleCashPayment(); // Mocking NextDoor balance as instant
     } else {
-       handleFiuuPayment();
+      handleFiuuPayment();
     }
   };
 
@@ -89,10 +111,7 @@ const CartScreen = ({navigation}: any) => {
 
       await addPointsForPurchase(grandTotal);
 
-      Alert.alert(
-        'Order Placed',
-        'Your order has been placed successfully!',
-      );
+      Alert.alert('Order Placed', 'Your order has been placed successfully!');
       clearCart();
       navigation.navigate('Home');
     } catch (e) {
@@ -136,8 +155,14 @@ const CartScreen = ({navigation}: any) => {
         try {
           let result;
           if (typeof data === 'string') {
-            try { result = JSON.parse(data); } catch (e) { result = {status_code: data}; }
-          } else { result = data; }
+            try {
+              result = JSON.parse(data);
+            } catch (e) {
+              result = {status_code: data};
+            }
+          } else {
+            result = data;
+          }
 
           if (result && result.status_code === '00') {
             await updateOrderPaymentStatus(orderId, 'paid');
@@ -178,21 +203,36 @@ const CartScreen = ({navigation}: any) => {
             <Text style={styles.modalTitle}>Payment Methods</Text>
             <View style={{width: 30}} />
           </View>
-          
+
           <ScrollView>
             {PAYMENT_METHODS.map(method => (
               <TouchableOpacity
                 key={method.id}
                 style={styles.paymentMethodRow}
                 onPress={() => setSelectedPayment(method)}>
-                <Icon 
-                  name={selectedPayment.id === method.id ? 'check-circle' : 'circle-outline'} 
-                  size={24} 
-                  color={selectedPayment.id === method.id ? Colors.primary : Colors.grey} 
+                <Icon
+                  name={
+                    selectedPayment.id === method.id
+                      ? 'check-circle'
+                      : 'circle-outline'
+                  }
+                  size={24}
+                  color={
+                    selectedPayment.id === method.id
+                      ? Colors.primary
+                      : Colors.grey
+                  }
                 />
                 <View style={styles.paymentMethodInfo}>
                   <Text style={styles.paymentMethodTitle}>
-                    {method.title} {method.subtitle ? <Text style={{color: Colors.textSecondary}}>{method.subtitle}</Text> : ''}
+                    {method.title}{' '}
+                    {method.subtitle ? (
+                      <Text style={{color: Colors.textSecondary}}>
+                        {method.subtitle}
+                      </Text>
+                    ) : (
+                      ''
+                    )}
                   </Text>
                   {method.label && (
                     <View style={styles.recommendedBadge}>
@@ -200,10 +240,14 @@ const CartScreen = ({navigation}: any) => {
                     </View>
                   )}
                   {method.id === 'nextdoor_balance' && (
-                    <Text style={styles.zusPromoText}>Enjoy faster checkout with NextDoor Balance!</Text>
+                    <Text style={styles.zusPromoText}>
+                      Enjoy faster checkout with NextDoor Balance!
+                    </Text>
                   )}
                   {method.id === 'ewallet' && (
-                    <Text style={styles.ewalletSubtext}>ShopeePay / SPayLater</Text>
+                    <Text style={styles.ewalletSubtext}>
+                      ShopeePay / SPayLater
+                    </Text>
                   )}
                 </View>
                 {method.id === 'nextdoor_balance' && (
@@ -211,15 +255,18 @@ const CartScreen = ({navigation}: any) => {
                     <Text style={styles.topUpBtnTextModal}>+ Top Up</Text>
                   </TouchableOpacity>
                 )}
-                {(method.id === 'online_banking' || method.id === 'ewallet') && (
-                   <Icon name="chevron-down" size={20} color={Colors.grey} />
+                {(method.id === 'online_banking' ||
+                  method.id === 'ewallet') && (
+                  <Icon name="chevron-down" size={20} color={Colors.grey} />
                 )}
               </TouchableOpacity>
             ))}
           </ScrollView>
 
           <View style={styles.modalFooter}>
-            <TouchableOpacity style={styles.confirmBtn} onPress={() => setPaymentModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.confirmBtn}
+              onPress={() => setPaymentModalVisible(false)}>
               <Text style={styles.confirmBtnText}>Confirm</Text>
             </TouchableOpacity>
           </View>
@@ -238,102 +285,153 @@ const CartScreen = ({navigation}: any) => {
         <View style={{width: 30}} />
       </View>
 
-      <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}>
           {/* PICKUP AT SECTION */}
           <Text style={styles.sectionTitle}>Pickup At</Text>
           <View style={styles.pickupCard}>
             <View style={styles.pickupInfo}>
-              <Text style={styles.branchName}>{selectedBranch?.name || 'Permy Mall, Miri'}</Text>
+              <Text style={styles.branchName}>
+                {selectedBranch?.name || 'Permy Mall, Miri'}
+              </Text>
               <View style={styles.addressRow}>
-                <Icon name="map-marker-outline" size={16} color={Colors.textSecondary} style={{marginTop: 2}} />
-                <Text style={styles.branchAddress}>{selectedBranch?.address || 'Location Address'}</Text>
+                <Icon
+                  name="map-marker-outline"
+                  size={16}
+                  color={Colors.textSecondary}
+                  style={{marginTop: 2}}
+                />
+                <Text style={styles.branchAddress}>
+                  {selectedBranch?.address || 'Location Address'}
+                </Text>
               </View>
               <View style={styles.pickupTimeRow}>
-                <Icon name="clock-outline" size={16} color={Colors.textSecondary} />
+                <Icon
+                  name="clock-outline"
+                  size={16}
+                  color={Colors.textSecondary}
+                />
                 <Text style={styles.pickupTimeText}>Pickup at Outlet:</Text>
               </View>
             </View>
             <View style={styles.pickupIllustration}>
-               <Icon name="storefront-outline" size={50} color={Colors.primary} />
+              <Icon
+                name="storefront-outline"
+                size={50}
+                color={Colors.primary}
+              />
             </View>
           </View>
 
           {/* YOUR ORDER SECTION */}
           <View style={styles.orderSectionHeader}>
-             <Text style={styles.sectionTitle}>Your Order</Text>
-             <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                <Text style={styles.addItemsText}>Add Items</Text>
-             </TouchableOpacity>
+            <Text style={styles.sectionTitle}>Your Order</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
+              <Text style={styles.addItemsText}>Add Items</Text>
+            </TouchableOpacity>
           </View>
 
           {cart.map(item => (
             <View key={item.id} style={styles.orderItem}>
-              <TouchableOpacity 
-                style={styles.orderItemInfo} 
-                onPress={() => navigation.navigate('ProductDetail', {
-                  product: item.product,
-                  globalOptions: globalOptions,
-                  cartItemId: item.id,
-                  initialQuantity: item.quantity,
-                  initialSelectedOptions: item.selectedOptions
-                })}
-              >
+              <TouchableOpacity
+                style={styles.orderItemInfo}
+                onPress={() =>
+                  navigation.navigate('ProductDetail', {
+                    product: item.product,
+                    globalOptions: globalOptions,
+                    cartItemId: item.id,
+                    initialQuantity: item.quantity,
+                    initialSelectedOptions: item.selectedOptions,
+                  })
+                }>
                 <Text style={styles.itemName}>{item.product.name}</Text>
                 <Text style={styles.editText}>EDIT</Text>
               </TouchableOpacity>
-              <Text style={styles.itemPrice}>RM {item.unitPrice.toFixed(2)}</Text>
+              <Text style={styles.itemPrice}>
+                RM {item.unitPrice.toFixed(2)}
+              </Text>
               <View style={styles.qtyRow}>
-                 <View>
-                    <Text style={styles.qtyTextLabel}>Qty {item.quantity}</Text>
-                    <Text style={styles.itemOptions}>
-                      {Object.entries(item.selectedOptions)
-                        .map(([_, ids]) => (ids as string[]).join(', '))
-                        .join(' | ')}
-                    </Text>
-                 </View>
-                 <TouchableOpacity onPress={() => removeItem(item.id)}>
-                    <Icon name="trash-can-outline" size={20} color={Colors.grey} />
-                 </TouchableOpacity>
+                <View>
+                  <Text style={styles.qtyTextLabel}>Qty {item.quantity}</Text>
+                  <Text style={styles.itemOptions}>
+                    {Object.entries(item.selectedOptions)
+                      .map(([_, ids]) => (ids as string[]).join(', '))
+                      .join(' | ')}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => removeItem(item.id)}>
+                  <Icon
+                    name="trash-can-outline"
+                    size={20}
+                    color={Colors.grey}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           ))}
 
           {/* CROSS SELL SECTION */}
           <Text style={styles.sectionTitle}>Frequently Enjoyed With</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.crossSellScroll}>
-             {crossSellItems.map(item => (
-               <View key={item.id} style={styles.crossSellCard}>
-                 {item.image ? (
-                   <Image source={{uri: item.image}} style={styles.crossSellImage} />
-                 ) : (
-                   <View style={styles.crossSellImage} />
-                 )}
-                 <Text style={styles.crossSellName} numberOfLines={2}>{item.name}</Text>
-                 <Text style={styles.crossSellPrice}>+ {item.price.startsWith('RM') ? item.price : `RM ${item.price}`}</Text>
-                 <TouchableOpacity style={styles.addBtn} onPress={() => {
-                   const parsedPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
-                   addItem({
-                     id: `${item.id}-${Date.now()}`,
-                     product: item,
-                     quantity: 1,
-                     selectedOptions: {},
-                     unitPrice: parsedPrice
-                   });
-                   Alert.alert('Added', `${item.name} has been added to your cart.`);
-                 }}>
-                    <Icon name="plus" size={16} color={Colors.primary} />
-                    <Text style={styles.addBtnText}>Add</Text>
-                 </TouchableOpacity>
-               </View>
-             ))}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.crossSellScroll}>
+            {crossSellItems.map(item => (
+              <View key={item.id} style={styles.crossSellCard}>
+                {item.image ? (
+                  <Image
+                    source={{uri: item.image}}
+                    style={styles.crossSellImage}
+                  />
+                ) : (
+                  <View style={styles.crossSellImage} />
+                )}
+                <Text style={styles.crossSellName} numberOfLines={2}>
+                  {item.name}
+                </Text>
+                <Text style={styles.crossSellPrice}>
+                  +{' '}
+                  {item.price.startsWith('RM')
+                    ? item.price
+                    : `RM ${item.price}`}
+                </Text>
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  onPress={() => {
+                    const parsedPrice =
+                      parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+                    addItem({
+                      id: `${item.id}-${Date.now()}`,
+                      product: item,
+                      quantity: 1,
+                      selectedOptions: {},
+                      unitPrice: parsedPrice,
+                    });
+                    Alert.alert(
+                      'Added',
+                      `${item.name} has been added to your cart.`,
+                    );
+                  }}>
+                  <Icon name="plus" size={16} color={Colors.primary} />
+                  <Text style={styles.addBtnText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </ScrollView>
 
           {/* SPECIAL REMARKS */}
           <Text style={styles.sectionTitle}>Special Remarks</Text>
           <View style={styles.remarksBox}>
-            <Icon name="comment-edit-outline" size={20} color={Colors.grey} style={{marginTop: 5}}/>
+            <Icon
+              name="comment-edit-outline"
+              size={20}
+              color={Colors.grey}
+              style={{marginTop: 5}}
+            />
             <TextInput
               style={styles.remarksInput}
               placeholder="Let us know if you have any special requests.&#10;E.g. I need sugar sachet."
@@ -346,96 +444,145 @@ const CartScreen = ({navigation}: any) => {
           </View>
 
           {/* PACKAGING */}
-          <Text style={styles.sectionTitle}>Packaging <Text style={{fontWeight: 'normal', color: Colors.grey, fontSize: 12}}>[If you really really really need it :)]</Text></Text>
-          <TouchableOpacity style={styles.packagingRow} onPress={() => setNeedStraws(!needStraws)}>
-             <Icon name={needStraws ? 'check-circle' : 'circle-outline'} size={24} color={needStraws ? Colors.primary : Colors.border} />
-             <Text style={styles.packagingText}>I need Straws</Text>
-             <Icon name="cup-water" size={24} color="#65B2FF" />
+          <Text style={styles.sectionTitle}>
+            Packaging{' '}
+            <Text
+              style={{fontWeight: 'normal', color: Colors.grey, fontSize: 12}}>
+              [If you really really really need it :)]
+            </Text>
+          </Text>
+          <TouchableOpacity
+            style={styles.packagingRow}
+            onPress={() => setNeedStraws(!needStraws)}>
+            <Icon
+              name={needStraws ? 'check-circle' : 'circle-outline'}
+              size={24}
+              color={needStraws ? Colors.primary : Colors.border}
+            />
+            <Text style={styles.packagingText}>I need Straws</Text>
+            <Icon name="cup-water" size={24} color="#65B2FF" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.packagingRow} onPress={() => setNeedPaperBag(!needPaperBag)}>
-             <Icon name={needPaperBag ? 'check-circle' : 'circle-outline'} size={24} color={needPaperBag ? Colors.primary : Colors.border} />
-             <Text style={styles.packagingText}>I need Paper Bag for my order</Text>
-             <Icon name="shopping-outline" size={24} color="#65B2FF" />
+          <TouchableOpacity
+            style={styles.packagingRow}
+            onPress={() => setNeedPaperBag(!needPaperBag)}>
+            <Icon
+              name={needPaperBag ? 'check-circle' : 'circle-outline'}
+              size={24}
+              color={needPaperBag ? Colors.primary : Colors.border}
+            />
+            <Text style={styles.packagingText}>
+              I need Paper Bag for my order
+            </Text>
+            <Icon name="shopping-outline" size={24} color="#65B2FF" />
           </TouchableOpacity>
 
           {/* PAYMENT METHODS */}
           <Text style={styles.sectionTitle}>Payment Methods</Text>
-          <TouchableOpacity style={styles.paymentSelector} onPress={() => setPaymentModalVisible(true)}>
+          <TouchableOpacity
+            style={styles.paymentSelector}
+            onPress={() => setPaymentModalVisible(true)}>
             <View>
-              <Text style={styles.paymentMethodTop}>{selectedPayment.title}</Text>
-              {selectedPayment.subtitle ? <Text style={styles.paymentMethodBottom}>{selectedPayment.subtitle}</Text> : null}
+              <Text style={styles.paymentMethodTop}>
+                {selectedPayment.title}
+              </Text>
+              {selectedPayment.subtitle ? (
+                <Text style={styles.paymentMethodBottom}>
+                  {selectedPayment.subtitle}
+                </Text>
+              ) : null}
             </View>
             <Icon name="chevron-right" size={24} color={Colors.grey} />
           </TouchableOpacity>
           <View style={styles.fasterCheckoutBanner}>
-             <Text style={styles.fasterCheckoutText}>Enjoy faster checkout by paying with NextDoor Balance!</Text>
+            <Text style={styles.fasterCheckoutText}>
+              Enjoy faster checkout by paying with NextDoor Balance!
+            </Text>
           </View>
 
           {/* VOUCHERS */}
-          <View style={{flexDirection: 'row', alignItems: 'center', marginTop: 10, marginBottom: 8}}>
-            <Text style={[styles.sectionTitle, {marginTop: 0, marginBottom: 0}]}>Vouchers</Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 10,
+              marginBottom: 8,
+            }}>
+            <Text
+              style={[styles.sectionTitle, {marginTop: 0, marginBottom: 0}]}>
+              Vouchers
+            </Text>
             <View style={[styles.blueDot, {marginLeft: 4, marginBottom: 0}]} />
           </View>
           <TouchableOpacity style={styles.voucherBox}>
-             <View style={styles.addVoucherLeft}>
-                <Icon name="plus-circle-outline" size={20} color={Colors.border} />
-                <Text style={styles.addVoucherText}>Add Voucher</Text>
-             </View>
-             <Icon name="chevron-right" size={20} color={Colors.border} />
+            <View style={styles.addVoucherLeft}>
+              <Icon
+                name="plus-circle-outline"
+                size={20}
+                color={Colors.border}
+              />
+              <Text style={styles.addVoucherText}>Add Voucher</Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={Colors.border} />
           </TouchableOpacity>
 
           {/* PAYMENT DETAILS */}
           <Text style={styles.sectionTitle}>Payment Details</Text>
           <View style={styles.summaryRow}>
-             <Text style={styles.summaryText}>Amount (Incl. 6% SST)</Text>
-             <Text style={styles.summaryText}>RM {subtotal.toFixed(2)}</Text>
+            <Text style={styles.summaryText}>Amount (Incl. 6% SST)</Text>
+            <Text style={styles.summaryText}>RM {subtotal.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryRow}>
-             <Text style={styles.summaryText}>Voucher</Text>
-             <Text style={styles.summaryText}>- RM 0.00</Text>
+            <Text style={styles.summaryText}>Voucher</Text>
+            <Text style={styles.summaryText}>- RM 0.00</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.summaryRow}>
-             <Text style={styles.summaryText}>Subtotal</Text>
-             <Text style={styles.summaryText}>RM {subtotal.toFixed(2)}</Text>
+            <Text style={styles.summaryText}>Subtotal</Text>
+            <Text style={styles.summaryText}>RM {subtotal.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryRow}>
-             <Text style={styles.summaryText}>Rounding Adj</Text>
-             <Text style={styles.summaryText}>RM 0.00</Text>
+            <Text style={styles.summaryText}>Rounding Adj</Text>
+            <Text style={styles.summaryText}>RM 0.00</Text>
           </View>
           <View style={styles.grandTotalRow}>
-             <Text style={styles.grandTotalLabel}>Grand Total</Text>
-             <Text style={styles.grandTotalAmount}>RM {grandTotal.toFixed(2)}</Text>
+            <Text style={styles.grandTotalLabel}>Grand Total</Text>
+            <Text style={styles.grandTotalAmount}>
+              RM {grandTotal.toFixed(2)}
+            </Text>
           </View>
           <View style={styles.summaryRow}>
-             <Text style={styles.taxText}>6% SST</Text>
-             <Text style={styles.taxText}>(RM {sstAmount.toFixed(2)})</Text>
+            <Text style={styles.taxText}>6% SST</Text>
+            <Text style={styles.taxText}>(RM {sstAmount.toFixed(2)})</Text>
           </View>
           <View style={styles.summaryRow}>
-             <Text style={styles.taxText}>NextDoor Points Earned</Text>
-             <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                <View style={styles.zBadge}><Text style={styles.zBadgeText}>N</Text></View>
-                <Text style={styles.taxText}> {pointsEarned} pts</Text>
-             </View>
+            <Text style={styles.taxText}>NextDoor Points Earned</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <View style={styles.zBadge}>
+                <Text style={styles.zBadgeText}>N</Text>
+              </View>
+              <Text style={styles.taxText}> {pointsEarned} pts</Text>
+            </View>
           </View>
           <View style={styles.summaryRow}>
-             <Text style={styles.taxText}>Cup Count <Icon name="information-outline" size={12} /></Text>
-             <Text style={styles.taxText}>🍹 +{cupCount} cups</Text>
+            <Text style={styles.taxText}>
+              Cup Count <Icon name="information-outline" size={12} />
+            </Text>
+            <Text style={styles.taxText}>🍹 +{cupCount} cups</Text>
           </View>
-          
+
           <View style={{height: 50}} />
         </ScrollView>
       </KeyboardAvoidingView>
 
       {/* FOOTER */}
       <View style={styles.footer}>
-         <View>
-            <Text style={styles.footerItemCount}>{cart.length} items</Text>
-            <Text style={styles.footerTotal}>RM {grandTotal.toFixed(2)}</Text>
-         </View>
-         <TouchableOpacity style={styles.orderBtn} onPress={handlePlaceOrder}>
-            <Text style={styles.orderBtnText}>Order Now</Text>
-         </TouchableOpacity>
+        <View>
+          <Text style={styles.footerItemCount}>{cart.length} items</Text>
+          <Text style={styles.footerTotal}>RM {grandTotal.toFixed(2)}</Text>
+        </View>
+        <TouchableOpacity style={styles.orderBtn} onPress={handlePlaceOrder}>
+          <Text style={styles.orderBtnText}>Order Now</Text>
+        </TouchableOpacity>
       </View>
 
       {renderPaymentModal()}
@@ -789,7 +936,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  
+
   // Modal Styles
   modalOverlay: {
     flex: 1,
