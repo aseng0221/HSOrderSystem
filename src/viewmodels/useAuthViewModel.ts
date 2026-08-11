@@ -5,7 +5,11 @@ import {
   FirebaseAuthTypes,
 } from '@react-native-firebase/auth';
 import {firebaseAuth} from '../services/firebase';
-import {getFirestore, serverTimestamp, increment} from '@react-native-firebase/firestore';
+import {
+  getFirestore,
+  serverTimestamp,
+  increment,
+} from '@react-native-firebase/firestore';
 
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);

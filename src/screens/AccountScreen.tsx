@@ -59,7 +59,6 @@ const AccountScreen = ({navigation}: any) => {
     }
   };
 
-
   const handleSeedOrders = async () => {
     if (!user) {
       return;
@@ -112,7 +111,7 @@ const AccountScreen = ({navigation}: any) => {
             console.log('No payment data received from SDK');
             return;
           }
-          
+
           const result = JSON.parse(data);
           if (result.status_code === '00') {
             // Payment Success
@@ -131,12 +130,18 @@ const AccountScreen = ({navigation}: any) => {
           }
         } catch (e) {
           console.error('Error parsing payment result:', e);
-          Alert.alert('Error', 'An error occurred while processing the payment result.');
+          Alert.alert(
+            'Error',
+            'An error occurred while processing the payment result.',
+          );
         }
       });
     } catch (error) {
       console.error('Molpay SDK execution error:', error);
-      Alert.alert('System Error', 'Could not open the payment gateway. Please try again.');
+      Alert.alert(
+        'System Error',
+        'Could not open the payment gateway. Please try again.',
+      );
     }
   };
 
@@ -159,7 +164,7 @@ const AccountScreen = ({navigation}: any) => {
             <Text style={styles.subtitle}>
               {user?.phoneNumber || user?.email}
             </Text>
-  
+
             <View style={styles.walletContainer}>
               <View>
                 <Text style={styles.walletLabel}>Wallet Balance</Text>
@@ -173,7 +178,7 @@ const AccountScreen = ({navigation}: any) => {
                 <Text style={styles.topupButtonText}>Top Up</Text>
               </TouchableOpacity>
             </View>
-  
+
             <TouchableOpacity
               style={styles.seedButton}
               onPress={handleSeedData}
@@ -184,7 +189,7 @@ const AccountScreen = ({navigation}: any) => {
                 <Text style={styles.seedButtonText}>Seed Sample Menu Data</Text>
               )}
             </TouchableOpacity>
-  
+
             <TouchableOpacity
               style={styles.seedButton}
               onPress={handleSeedOrders}
@@ -195,9 +200,8 @@ const AccountScreen = ({navigation}: any) => {
                 <Text style={styles.seedButtonText}>Seed Mock Orders</Text>
               )}
             </TouchableOpacity>
-
           </View>
-  
+
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -225,7 +229,11 @@ const AccountScreen = ({navigation}: any) => {
               onPress={() =>
                 navigation.navigate('AddressSelection', {mode: 'manage'})
               }>
-              <Icon name="map-marker-outline" size={24} color={Colors.primary} />
+              <Icon
+                name="map-marker-outline"
+                size={24}
+                color={Colors.primary}
+              />
               <Text style={styles.menuItemText}>Manage Addresses</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
@@ -233,16 +241,24 @@ const AccountScreen = ({navigation}: any) => {
 
           <View style={[styles.menuContainer, {marginTop: Spacing.lg}]}>
             <Text style={styles.sectionTitle}>Diagnostic Tools</Text>
-            
+
             <TouchableOpacity
               style={styles.menuItem}
               onPress={async () => {
                 try {
                   await getCrashlytics().setCrashlyticsCollectionEnabled(true);
                   await getCrashlytics().setUserId(user?.uid || 'anonymous');
-                  await getCrashlytics().setAttribute('email', user?.email || 'none');
-                  getCrashlytics().log('Manual diagnostic ping sent from AccountScreen');
-                  Alert.alert('Success', 'Diagnostic ping sent! Check Firebase dashboard in 2-5 minutes.');
+                  await getCrashlytics().setAttribute(
+                    'email',
+                    user?.email || 'none',
+                  );
+                  getCrashlytics().log(
+                    'Manual diagnostic ping sent from AccountScreen',
+                  );
+                  Alert.alert(
+                    'Success',
+                    'Diagnostic ping sent! Check Firebase dashboard in 2-5 minutes.',
+                  );
                 } catch (e: any) {
                   Alert.alert('Error', e.message);
                 }
@@ -256,13 +272,24 @@ const AccountScreen = ({navigation}: any) => {
               style={styles.menuItem}
               onPress={() => {
                 try {
-                  getCrashlytics().recordError(new Error('CRASHLYTICS TEST: Non-fatal error for dashboard activation'));
-                  Alert.alert('Success', 'Non-fatal error sent! Restart the app to ensure upload.');
+                  getCrashlytics().recordError(
+                    new Error(
+                      'CRASHLYTICS TEST: Non-fatal error for dashboard activation',
+                    ),
+                  );
+                  Alert.alert(
+                    'Success',
+                    'Non-fatal error sent! Restart the app to ensure upload.',
+                  );
                 } catch (e: any) {
                   Alert.alert('Error', e.message);
                 }
               }}>
-              <Icon name="alert-circle" size={24} color={Colors.warning || '#FFCC00'} />
+              <Icon
+                name="alert-circle"
+                size={24}
+                color={Colors.warning || '#FFCC00'}
+              />
               <Text style={styles.menuItemText}>Send Non-Fatal Error</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
@@ -277,8 +304,8 @@ const AccountScreen = ({navigation}: any) => {
                   [
                     {text: 'Cancel', style: 'cancel'},
                     {
-                      text: 'Crash Now', 
-                      style: 'destructive', 
+                      text: 'Crash Now',
+                      style: 'destructive',
                       onPress: () => {
                         console.log('Executing getCrashlytics().crash()...');
                         try {
@@ -287,9 +314,9 @@ const AccountScreen = ({navigation}: any) => {
                           console.error('Crashlytics crash error:', e);
                           Alert.alert('Module Error', e.message);
                         }
-                      }
+                      },
                     },
-                  ]
+                  ],
                 );
               }}>
               <Icon name="bug" size={24} color={Colors.error || '#FF3B30'} />
@@ -297,7 +324,7 @@ const AccountScreen = ({navigation}: any) => {
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
           </View>
-  
+
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={async () => {

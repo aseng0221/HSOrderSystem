@@ -177,8 +177,6 @@ const MenuScreen = () => {
                 : selectedBranch?.name || 'Select Outlet'}
             </Text>
           </TouchableOpacity>
-
-
         </View>
 
         {isAuthenticated && (
@@ -234,8 +232,6 @@ const MenuScreen = () => {
             </View>
           </View>
         )}
-
-
       </View>
     );
   };
