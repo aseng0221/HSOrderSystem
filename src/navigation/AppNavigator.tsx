@@ -22,6 +22,10 @@ import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 
 import {GiftCardScreen, RewardsScreen} from '../screens/PlaceholderScreens';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import {getSavedEmail} from '../utils/storage';
+import {Linking, Alert} from 'react-native';
 import LegalDetailScreen from '../screens/LegalDetailScreen';
 import {Colors} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -107,6 +111,42 @@ import {
 export const navigationRef = createNavigationContainerRef();
 
 const AppNavigator = () => {
+  React.useEffect(() => {
+    const handleUrl = async (url: string | null) => {
+      if (!url) return;
+      if (auth().isSignInWithEmailLink(url)) {
+        try {
+          const email = await getSavedEmail();
+          if (!email) {
+            Alert.alert('Error', 'Please provide your email again to complete sign in.');
+            return;
+          }
+          const userCredential = await auth().signInWithEmailLink(email, url);
+          const user = userCredential.user;
+
+          const userDoc = await firestore().collection('users').doc(user.uid).get();
+          const userData = userDoc.data();
+          if (!userData?.displayName || !userData?.phoneNumber) {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('ProfileSetup' as never);
+            }
+          } else {
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('MainTabs' as never);
+            }
+          }
+        } catch (error: any) {
+          console.error(error);
+          Alert.alert('Login Error', error.message);
+        }
+      }
+    };
+
+    Linking.getInitialURL().then(handleUrl);
+    const subscription = Linking.addEventListener('url', (event) => handleUrl(event.url));
+    return () => subscription.remove();
+  }, []);
+
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator

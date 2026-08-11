@@ -18,11 +18,10 @@ import firestore from '@react-native-firebase/firestore';
 import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBiometrics from 'react-native-biometrics';
-import {getSavedPhone, clearStoredData} from '../utils/storage';
+import {getSavedPhone, clearStoredData, saveEmail} from '../utils/storage';
 
 const LoginScreen = ({navigation}: any) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [savedPhone, setSavedPhone] = useState<string | null>(null);
   const [isBiometricView, setIsBiometricView] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -114,110 +113,43 @@ const LoginScreen = ({navigation}: any) => {
         />
       </View>
 
-      <View style={styles.inputContainer}>
-        <Icon name="lock-outline" size={24} color={Colors.grey} style={{marginRight: 10}} />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor={Colors.grey}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-      </View>
-
-      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-        <TouchableOpacity
-          style={[styles.button, {flex: 1, marginRight: Spacing.sm}, loading && styles.buttonDisabled]}
-          onPress={async () => {
-            if (!email || !password) {
-              Alert.alert('Incomplete', 'Please enter both email and password.');
-              return;
-            }
-            setLoading(true);
-            try {
-              const userCredential = await auth().signInWithEmailAndPassword(email, password);
-              const user = userCredential.user;
-              await user.reload();
-
-              if (!user.emailVerified) {
-                await auth().signOut();
-                Alert.alert(
-                  'Email Not Verified',
-                  'Please verify your email address to continue.',
-                  [
-                    {text: 'Cancel', style: 'cancel'},
-                    {text: 'Resend Email', onPress: () => user.sendEmailVerification()}
-                  ]
-                );
-                setLoading(false);
-                return;
-              }
-
-              const userDoc = await firestore().collection('users').doc(user.uid).get();
-              const userData = userDoc.data();
-              if (!userData?.displayName || !userData?.phoneNumber) {
-                navigation.navigate('ProfileSetup');
-              } else {
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'MainTabs'}],
-                });
-              }
-            } catch (error: any) {
-              console.error(error);
-              Alert.alert('Login Failed', error.message || 'Authentication failed. Please try again.');
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? 'Wait...' : 'Log In'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, {flex: 1, marginLeft: Spacing.sm, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.primary}, loading && styles.buttonDisabled]}
-          onPress={async () => {
-            if (!email || !password) {
-              Alert.alert('Incomplete', 'Please enter both email and password.');
-              return;
-            }
-            setLoading(true);
-            try {
-              const userCredential = await auth().createUserWithEmailAndPassword(email, password);
-              await userCredential.user.sendEmailVerification();
-              await auth().signOut();
-              Alert.alert(
-                'Account Created',
-                'A verification email has been sent to your address. Please verify it before logging in.',
-              );
-            } catch (error: any) {
-              console.error(error);
-              Alert.alert('Sign Up Failed', error.message || 'Registration failed. Please try again.');
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={loading}>
-          <Text style={[styles.buttonText, {color: Colors.primary}]}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity
-        style={{marginTop: Spacing.lg, alignItems: 'center'}}
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={async () => {
           if (!email) {
-            Alert.alert('Reset Password', 'Please enter your email address above to reset your password.');
+            Alert.alert('Incomplete', 'Please enter your email address.');
             return;
           }
+          setLoading(true);
           try {
-            await auth().sendPasswordResetEmail(email);
-            Alert.alert('Email Sent', 'Password reset instructions have been sent to your email.');
+            const actionCodeSettings = {
+              url: 'https://YOUR_FIREBASE_AUTH_DOMAIN/login',
+              handleCodeInApp: true,
+              iOS: {
+                bundleId: 'org.reactjs.native.example.HSOrderSystem',
+              },
+              android: {
+                packageName: 'com.hsordersystem',
+                installApp: false,
+              },
+            };
+
+            await auth().sendSignInLinkToEmail(email, actionCodeSettings);
+            await saveEmail(email);
+
+            Alert.alert(
+              'Check your email',
+              'We sent a magic link to your email address. Click it to log in.',
+            );
           } catch (error: any) {
-            Alert.alert('Error', error.message);
+            console.error(error);
+            Alert.alert('Failed to send link', error.message || 'Please try again.');
+          } finally {
+            setLoading(false);
           }
-        }}>
-        <Text style={styles.otherMethodText}>Forgot Password?</Text>
+        }}
+        disabled={loading}>
+        <Text style={styles.buttonText}>{loading ? 'Sending...' : 'Send Login Link'}</Text>
       </TouchableOpacity>
     </>
   );

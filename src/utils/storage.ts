@@ -2,7 +2,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const KEYS = {
   SAVED_PHONE_NUMBER: 'saved_phone_number',
+  SAVED_EMAIL: 'saved_email',
   BIOMETRIC_ENABLED: 'biometric_enabled',
+};
+
+export const saveEmail = async (email: string) => {
+  try {
+    await AsyncStorage.setItem(KEYS.SAVED_EMAIL, email);
+  } catch (error) {
+    console.error('Error saving email:', error);
+  }
+};
+
+export const getSavedEmail = async (): Promise<string | null> => {
+  try {
+    return await AsyncStorage.getItem(KEYS.SAVED_EMAIL);
+  } catch (error) {
+    console.error('Error getting email:', error);
+    return null;
+  }
 };
 
 export const saveUserPhone = async (phoneNumber: string) => {
@@ -43,6 +61,7 @@ export const isBiometricEnabled = async (): Promise<boolean> => {
 export const clearStoredData = async () => {
   try {
     await AsyncStorage.removeItem(KEYS.SAVED_PHONE_NUMBER);
+    await AsyncStorage.removeItem(KEYS.SAVED_EMAIL);
     await AsyncStorage.removeItem(KEYS.BIOMETRIC_ENABLED);
   } catch (e) {
     console.error('Error clearing stored data:', e);
