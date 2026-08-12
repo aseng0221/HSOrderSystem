@@ -20,9 +20,10 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import {getSavedPhone, clearStoredData, saveEmail} from '../utils/storage';
 
-const LoginScreen = ({navigation}: any) => {
+const LoginScreen = ({navigation, route}: any) => {
   const [email, setEmail] = useState('');
   const [savedPhone, setSavedPhone] = useState<string | null>(null);
+  const authUrl = route?.params?.authUrl;
   const [isBiometricView, setIsBiometricView] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -122,8 +123,19 @@ const LoginScreen = ({navigation}: any) => {
           }
           setLoading(true);
           try {
+            if (authUrl) {
+              const userCredential = await auth().signInWithEmailLink(email, authUrl);
+              const user = userCredential.user;
+
+              const userDoc = await firestore().collection('users').doc(user.uid).get();
+              const userData = userDoc.data();
+              if (!userData?.displayName || !userData?.phoneNumber) {
+                navigation.navigate('ProfileSetup');
+              }
+              return;
+            }
             const actionCodeSettings = {
-              url: 'https://YOUR_FIREBASE_AUTH_DOMAIN/login',
+              url: 'https://hsordersystem.firebaseapp.com/login',
               handleCodeInApp: true,
               iOS: {
                 bundleId: 'org.reactjs.native.example.HSOrderSystem',
@@ -149,7 +161,7 @@ const LoginScreen = ({navigation}: any) => {
           }
         }}
         disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Sending...' : 'Send Login Link'}</Text>
+        <Text style={styles.buttonText}>{loading ? 'Please Wait...' : (authUrl ? 'Complete Sign In' : 'Send Login Link')}</Text>
       </TouchableOpacity>
     </>
   );

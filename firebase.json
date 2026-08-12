@@ -3,5 +3,19 @@
     "crashlytics_auto_collection_enabled": true,
     "crashlytics_debug_enabled": true,
     "crashlytics_disable_auto_disabler": true
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }

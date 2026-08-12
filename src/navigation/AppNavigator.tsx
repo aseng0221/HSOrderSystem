@@ -118,7 +118,9 @@ const AppNavigator = () => {
         try {
           const email = await getSavedEmail();
           if (!email) {
-            Alert.alert('Error', 'Please provide your email again to complete sign in.');
+            if (navigationRef.isReady()) {
+              navigationRef.navigate('Login' as never, { authUrl: url } as never);
+            }
             return;
           }
           const userCredential = await auth().signInWithEmailLink(email, url);
@@ -129,10 +131,6 @@ const AppNavigator = () => {
           if (!userData?.displayName || !userData?.phoneNumber) {
             if (navigationRef.isReady()) {
               navigationRef.navigate('ProfileSetup' as never);
-            }
-          } else {
-            if (navigationRef.isReady()) {
-              navigationRef.navigate('MainTabs' as never);
             }
           }
         } catch (error: any) {

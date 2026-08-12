@@ -10,7 +10,7 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:YOUR_FIREBASE_AUTH_DOMAIN</string>
+		<string>applinks:hsordersystem.firebaseapp.com</string>
 	</array>
 </dict>
 </plist>
