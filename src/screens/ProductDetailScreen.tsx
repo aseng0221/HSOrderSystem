@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -87,10 +88,17 @@ const ProductDetailScreen = ({route, navigation}: any) => {
     optionId: string,
     type: string,
     max?: number,
+    isRequired?: boolean,
   ) => {
     setSelectedOptions(prev => {
       const current = prev[groupId] || [];
       if (type === 'pick_one' || type === 'boolean') {
+        if (current.includes(optionId)) {
+          if (!isRequired) {
+            return {...prev, [groupId]: []};
+          }
+          return prev;
+        }
         return {...prev, [groupId]: [optionId]};
       }
       if (type === 'multi_select') {
@@ -107,6 +115,17 @@ const ProductDetailScreen = ({route, navigation}: any) => {
   };
 
   const handleAddToCart = () => {
+    // Validate mandatory option groups
+    for (const group of resolvedOptions) {
+      if (group.isRequired) {
+        const selections = selectedOptions[group.id] || [];
+        if (selections.length === 0) {
+          Alert.alert('Selection Required', `Please choose an option for ${group.name}.`);
+          return;
+        }
+      }
+    }
+
     if (cartItemId) {
       removeItem(cartItemId);
     }
@@ -156,7 +175,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
                 </Text>
                 <Text style={styles.selectionType}>
                   {group.type === 'pick_one'
-                    ? '* Pick 1'
+                    ? (group.isRequired ? '* Pick 1' : '')
                     : `Select up to ${group.maxSelections || ''}`}
                 </Text>
               </View>
@@ -178,6 +197,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
                           opt.id,
                           group.type,
                           group.maxSelections,
+                          group.isRequired,
                         )
                       }>
                       <Text
