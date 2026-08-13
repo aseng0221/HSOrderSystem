@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -41,6 +41,19 @@ const EditProfileScreen = ({navigation}: any) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.displayName || '');
+      setPhoneNumber(profile.phoneNumber || '');
+      if (profile.birthdate) {
+        setBirthdate(new Date(profile.birthdate));
+      }
+    } else if (user) {
+      setDisplayName(user.displayName || '');
+      setPhoneNumber(user.phoneNumber || '');
+    }
+  }, [profile, user]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
