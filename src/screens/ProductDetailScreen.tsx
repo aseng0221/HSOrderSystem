@@ -38,7 +38,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
   }, [product, allGlobalOptions]);
 
   const {unitPrice, totalPrice} = useMemo(() => {
-    let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
+    let basePrice = product.price;
     let optionsPrice = 0;
 
     // Add option prices

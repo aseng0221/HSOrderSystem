@@ -6,7 +6,7 @@ interface ProductCardProps {
   product: {
     id: string;
     name: string;
-    price: string;
+    price: number;
     image?: string;
     tag?: string;
   };
@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress}) => {
       <Text style={styles.productTitle} numberOfLines={2}>
         {product.name}
       </Text>
-      <Text style={styles.productPrice}>{product.price}</Text>
+      <Text style={styles.productPrice}>RM {product.price.toFixed(2)}</Text>
     </TouchableOpacity>
   );
 };

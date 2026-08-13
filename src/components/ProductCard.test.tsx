@@ -6,7 +6,7 @@ describe('ProductCard', () => {
   const mockProduct = {
     id: '1',
     name: 'Americano',
-    price: 'RM 10.00',
+    price: 10.00,
     image: 'https://example.com/image.jpg',
     tag: 'Best Seller',
   };
@@ -25,7 +25,10 @@ describe('ProductCard', () => {
     const testInstance = testRenderer.root;
 
     expect(testInstance.findByProps({children: 'Americano'})).toBeTruthy();
-    expect(testInstance.findByProps({children: 'RM 10.00'})).toBeTruthy();
+    const priceText = testInstance.findAllByType('Text').find(
+      (node) => node.props.style?.marginTop === 4
+    );
+    expect(priceText?.children.join('')).toBe('RM 10.00');
   });
 
   it('renders tag when provided', () => {

@@ -18,7 +18,7 @@ interface Product {
   categoryId: string;
   name: string;
   tag: string;
-  price: string;
+  price: number;
   order: number;
   image?: string;
   description?: string;
@@ -57,42 +57,42 @@ export const seedMenuData = async () => {
         categoryId: 'lepak',
         name: 'CEO Chocolate',
         tag: 'RICH & KAW',
-        price: 'RM 13.90',
+        price: 13.90,
         order: 1,
       },
       {
         categoryId: 'lepak',
         name: 'Iced Buttercrème Latté',
         tag: 'BUTTERY BLISS',
-        price: 'RM 11.20',
+        price: 11.20,
         order: 2,
       },
       {
         categoryId: 'lepak',
         name: 'Burnt Cheese Cake',
         tag: 'MOST ORDERED',
-        price: 'RM 15.00',
+        price: 15.00,
         order: 3,
       },
       {
         categoryId: 'lepak',
         name: 'Signature Latté',
         tag: 'BESTSELLER',
-        price: 'RM 10.90',
+        price: 10.90,
         order: 3,
       },
       {
         categoryId: 'tea',
         name: 'NextDoor Tea - Peach',
         tag: 'REFRESHING',
-        price: 'RM 6.80',
+        price: 6.80,
         order: 1,
       },
       {
         categoryId: 'grape',
         name: 'Grape Americano',
         tag: 'MUST TRY',
-        price: 'RM 4.90',
+        price: 4.90,
         order: 1,
         image: 'https://img.zuscoffee.com/zuscoffee/menu/Grape-Americano.png',
         description:
