@@ -16,12 +16,14 @@ import {KEYS} from '../config/keys';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
 import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
+import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
 
 const OrderHistoryDetailScreen = ({route, navigation}: any) => {
   const {order} = route.params as {order: Order};
   const {user} = useAuthViewModel();
   const {updateOrderPaymentStatus} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
+  const {globalOptions} = useMenuViewModel();
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) {
@@ -39,7 +41,16 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
         </Text>
         <Text style={styles.itemOptions}>
           {Object.entries(item.selectedOptions || {})
-            .map(([_, ids]) => (ids as string[]).join(', '))
+            .map(([groupId, ids]) => {
+              return (ids as string[])
+                .map(optId => {
+                  const group = globalOptions?.find((g: any) => g.id === groupId);
+                  const option = group?.options?.find((o: any) => o.id === optId);
+                  return option ? option.name : optId;
+                })
+                .join(', ');
+            })
+            .filter(Boolean)
             .join(' | ')}
         </Text>
       </View>

@@ -359,7 +359,16 @@ const CartScreen = ({navigation}: any) => {
                   <Text style={styles.qtyTextLabel}>Qty {item.quantity}</Text>
                   <Text style={styles.itemOptions}>
                     {Object.entries(item.selectedOptions)
-                      .map(([_, ids]) => (ids as string[]).join(', '))
+                      .map(([groupId, ids]) => {
+                        return (ids as string[])
+                          .map(optId => {
+                            const group = globalOptions?.find((g: any) => g.id === groupId);
+                            const option = group?.options?.find((o: any) => o.id === optId);
+                            return option ? option.name : optId;
+                          })
+                          .join(', ');
+                      })
+                      .filter(Boolean)
                       .join(' | ')}
                   </Text>
                 </View>
