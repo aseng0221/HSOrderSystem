@@ -67,13 +67,33 @@ export const useOrderHistoryViewModel = () => {
 
         const snapshot = await getDocs(q);
         const fetchedOrders: Order[] = [];
+        const now = new Date().getTime();
 
-        snapshot.forEach(doc => {
+        for (const docSnap of snapshot.docs) {
+          const data = docSnap.data();
+          const orderId = docSnap.id;
+          let status = data.status;
+
+          if (data.paymentStatus === 'unpaid' && status !== 'cancelled' && data.createdAt) {
+            const createdAtDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+            const diffMins = (now - createdAtDate.getTime()) / 1000 / 60;
+            if (diffMins > 15) {
+              status = 'cancelled';
+              try {
+                const orderDocRef = doc(db, 'orders', orderId);
+                await updateDoc(orderDocRef, {status: 'cancelled'});
+              } catch (e) {
+                console.error(`Failed to auto-cancel expired order ${orderId}:`, e);
+              }
+            }
+          }
+
           fetchedOrders.push({
-            id: doc.id,
-            ...(doc.data() as Omit<Order, 'id'>),
+            id: orderId,
+            ...(data as Omit<Order, 'id'>),
+            status,
           });
-        });
+        }
 
         if (isLoadMore) {
           setOrders(prev => [...prev, ...fetchedOrders]);
@@ -138,6 +158,18 @@ export const useOrderHistoryViewModel = () => {
     }
   };
 
+  const cancelOrder = async (orderId: string) => {
+    try {
+      const orderDocRef = doc(db, 'orders', orderId);
+      await updateDoc(orderDocRef, {status: 'cancelled'});
+      // Refresh the orders list to reflect the update
+      fetchOrders(false);
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      throw error;
+    }
+  };
+
   return {
     orders,
     loading,
@@ -146,5 +178,6 @@ export const useOrderHistoryViewModel = () => {
     fetchOrders,
     createOrder,
     updateOrderPaymentStatus,
+    cancelOrder,
   };
 };

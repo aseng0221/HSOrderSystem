@@ -21,9 +21,32 @@ import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
 const OrderHistoryDetailScreen = ({route, navigation}: any) => {
   const {order} = route.params as {order: Order};
   const {user} = useAuthViewModel();
-  const {updateOrderPaymentStatus} = useOrderHistoryViewModel();
+  const {updateOrderPaymentStatus, cancelOrder} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {globalOptions} = useMenuViewModel();
+
+  const isExpired = React.useMemo(() => {
+    if (order.paymentStatus === 'unpaid' && order.status !== 'cancelled' && order.createdAt) {
+      const created = order.createdAt as unknown as (number | { toDate: () => Date });
+      if (!created) {
+        return false;
+      }
+      const orderDate = (typeof created === 'object' && 'toDate' in created)
+        ? created.toDate()
+        : new Date(created);
+      const diffMins = (new Date().getTime() - orderDate.getTime()) / 1000 / 60;
+      return diffMins > 15;
+    }
+    return false;
+  }, [order]);
+
+  const displayedStatus = isExpired ? 'cancelled' : order.status;
+
+  React.useEffect(() => {
+    if (isExpired) {
+      cancelOrder(order.id).catch(err => console.error('Auto-cancel failed:', err));
+    }
+  }, [isExpired]);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) {
@@ -139,11 +162,11 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
           <View style={styles.badgesContainer}>
             <View style={styles.statusBadge}>
               <Text style={styles.statusText}>
-                {order.status === 'pending' &&
+                {displayedStatus === 'pending' &&
                 order.paymentMethod === 'online' &&
                 order.paymentStatus === 'unpaid'
                   ? 'PENDING PAYMENT'
-                  : order.status.replace(/_/g, ' ').toUpperCase()}
+                  : displayedStatus.replace(/_/g, ' ').toUpperCase()}
               </Text>
             </View>
             {order.paymentMethod === 'cash' &&
@@ -179,7 +202,8 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
         </View>
 
         {order.paymentMethod === 'online' &&
-          order.paymentStatus === 'unpaid' && (
+          order.paymentStatus === 'unpaid' &&
+          displayedStatus !== 'cancelled' && (
             <TouchableOpacity
               style={styles.payButton}
               onPress={handleRetryPayment}>
