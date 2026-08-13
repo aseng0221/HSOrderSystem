@@ -201,6 +201,7 @@ const CartScreen = ({navigation}: any) => {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         quality: 0.8,
+        includeBase64: true,
       });
 
       if (result.didCancel || !result.assets || result.assets.length === 0) {
@@ -208,15 +209,15 @@ const CartScreen = ({navigation}: any) => {
       }
 
       const asset = result.assets[0];
-      if (!asset.uri) {
-        Alert.alert('Error', 'Could not get image URI');
+      if (!asset.base64) {
+        Alert.alert('Error', 'Could not get image data');
         return;
       }
 
       setIsTopupUploading(true);
 
       // Upload to Firebase Storage
-      const receiptUrl = await uploadReceiptToStorage(user.uid, asset.uri);
+      const receiptUrl = await uploadReceiptToStorage(user.uid, asset.base64);
 
       // Create manual topup request in Firestore
       await getFirestore().collection('topups').add({
@@ -264,6 +265,7 @@ const CartScreen = ({navigation}: any) => {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         quality: 0.8,
+        includeBase64: true,
       });
 
       if (result.didCancel || !result.assets || result.assets.length === 0) {
@@ -271,15 +273,15 @@ const CartScreen = ({navigation}: any) => {
       }
 
       const asset = result.assets[0];
-      if (!asset.uri) {
-        Alert.alert('Error', 'Could not get image URI');
+      if (!asset.base64) {
+        Alert.alert('Error', 'Could not get image data');
         return;
       }
 
       setIsUploading(true);
 
       // Upload to Firebase Storage
-      const receiptUrl = await uploadReceiptToStorage(user!.uid, asset.uri);
+      const receiptUrl = await uploadReceiptToStorage(user!.uid, asset.base64);
 
       // Create Order
       await createOrder({

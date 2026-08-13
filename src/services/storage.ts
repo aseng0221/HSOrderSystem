@@ -2,13 +2,12 @@ import storage from '@react-native-firebase/storage';
 
 export const uploadReceiptToStorage = async (
   userId: string,
-  imageUri: string,
+  base64Data: string,
 ): Promise<string> => {
   try {
     const filename = `receipts/${userId}_${Date.now()}.jpg`;
     const reference = storage().ref(filename);
-    const cleanUri = decodeURIComponent(imageUri);
-    await reference.putFile(cleanUri);
+    await reference.putString(base64Data, 'base64', { contentType: 'image/jpeg' });
     const downloadURL = await reference.getDownloadURL();
     return downloadURL;
   } catch (error) {
