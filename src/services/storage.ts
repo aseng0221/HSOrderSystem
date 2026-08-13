@@ -7,7 +7,8 @@ export const uploadReceiptToStorage = async (
   try {
     const filename = `receipts/${userId}_${Date.now()}.jpg`;
     const reference = storage().ref(filename);
-    await reference.putFile(imageUri);
+    const cleanUri = decodeURIComponent(imageUri);
+    await reference.putFile(cleanUri);
     const downloadURL = await reference.getDownloadURL();
     return downloadURL;
   } catch (error) {
