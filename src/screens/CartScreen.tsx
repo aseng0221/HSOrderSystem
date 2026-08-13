@@ -422,28 +422,30 @@ const CartScreen = ({navigation}: any) => {
             <View style={{width: 24}} />
           </View>
 
-          <Text style={styles.qrInstructions}>
-            Please scan the QR code to transfer {`RM ${grandTotal.toFixed(2)}`}{' '}
-            via Touch 'n Go, then upload your receipt below.
-          </Text>
-
-          <View style={styles.qrContainer}>
-            <Image
-              source={{
-                uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
-              }}
-              style={styles.qrImage}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.uploadBtn, isUploading && styles.uploadBtnDisabled]}
-            onPress={handleReceiptUpload}
-            disabled={isUploading}>
-            <Text style={styles.uploadBtnText}>
-              {isUploading ? 'Uploading...' : 'Upload Receipt'}
+          <View style={styles.qrModalBody}>
+            <Text style={styles.qrInstructions}>
+              Please scan the QR code to transfer {`RM ${grandTotal.toFixed(2)}`}{' '}
+              via Touch 'n Go, then upload your receipt below.
             </Text>
-          </TouchableOpacity>
+
+            <View style={styles.qrContainer}>
+              <Image
+                source={{
+                  uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
+                }}
+                style={styles.qrImage}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.uploadBtn, isUploading && styles.uploadBtnDisabled]}
+              onPress={handleReceiptUpload}
+              disabled={isUploading}>
+              <Text style={styles.uploadBtnText}>
+                {isUploading ? 'Uploading...' : 'Upload Receipt'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -1590,6 +1592,11 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
+  },
+  qrModalBody: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
 });
 
