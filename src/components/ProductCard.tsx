@@ -14,6 +14,12 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({product, onPress}) => {
+  const formattedPrice = (() => {
+    if (!product.price) return 'RM 0.00';
+    const cleanPrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
+    return isNaN(cleanPrice) ? product.price : `RM ${cleanPrice.toFixed(2)}`;
+  })();
+
   return (
     <TouchableOpacity style={styles.productCard} onPress={onPress}>
       <View style={styles.productImageContainer}>
@@ -35,7 +41,7 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress}) => {
       <Text style={styles.productTitle} numberOfLines={2}>
         {product.name}
       </Text>
-      <Text style={styles.productPrice}>{product.price}</Text>
+      <Text style={styles.productPrice}>{formattedPrice}</Text>
     </TouchableOpacity>
   );
 };
