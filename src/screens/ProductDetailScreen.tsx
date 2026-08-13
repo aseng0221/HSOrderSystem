@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   Dimensions,
   Alert,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Colors, Spacing} from '../theme';
-import {useCart} from '../context/CartContext';
+import { Colors, Spacing } from '../theme';
+import { useCart } from '../context/CartContext';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const ProductDetailScreen = ({route, navigation}: any) => {
+const ProductDetailScreen = ({ route, navigation }: any) => {
   const {
     product,
     globalOptions: allGlobalOptions,
@@ -25,7 +25,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
     initialSelectedOptions,
   } = route.params;
 
-  const {addItem, removeItem} = useCart();
+  const { addItem, removeItem } = useCart();
   const [quantity, setQuantity] = useState(initialQuantity || 1);
 
   // Resolve Global Options (Option B)
@@ -54,7 +54,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
     return defaults;
   });
 
-  const {unitPrice, totalPrice} = useMemo(() => {
+  const { unitPrice, totalPrice } = useMemo(() => {
     let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
     let optionsPrice = 0;
 
@@ -95,20 +95,20 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       if (type === 'pick_one' || type === 'boolean') {
         if (current.includes(optionId)) {
           if (!isRequired) {
-            return {...prev, [groupId]: []};
+            return { ...prev, [groupId]: [] };
           }
           return prev;
         }
-        return {...prev, [groupId]: [optionId]};
+        return { ...prev, [groupId]: [optionId] };
       }
       if (type === 'multi_select') {
         if (current.includes(optionId)) {
-          return {...prev, [groupId]: current.filter(id => id !== optionId)};
+          return { ...prev, [groupId]: current.filter(id => id !== optionId) };
         }
         if (max && current.length >= max) {
           return prev;
         }
-        return {...prev, [groupId]: [...current, optionId]};
+        return { ...prev, [groupId]: [...current, optionId] };
       }
       return prev;
     });
@@ -146,7 +146,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
           <Icon name="chevron-left" size={30} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{product.name}</Text>
-        <View style={{width: 30}} />
+        <View style={{ width: 30 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -212,7 +212,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
                             {(typeof opt.price === 'number'
                               ? opt.price
                               : parseFloat(opt.price.replace(/[^\d.]/g, '')) ||
-                                0
+                              0
                             ).toFixed(2)}
                             )
                           </Text>
@@ -230,7 +230,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       <View style={styles.footer}>
         <View style={styles.priceRow}>
           <View>
-            <Text style={styles.footerPrice}>$ {totalPrice.toFixed(2)}</Text>
+            <Text style={styles.footerPrice}>RM {totalPrice.toFixed(2)}</Text>
           </View>
           <View style={styles.quantityContainer}>
             <TouchableOpacity
