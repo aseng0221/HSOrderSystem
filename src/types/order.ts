@@ -15,6 +15,7 @@ export interface Order {
   totalAmount: number;
   status:
     | 'pending'
+    | 'pending_verification'
     | 'processing'
     | 'preparing'
     | 'ready_to_pickup'
@@ -22,8 +23,9 @@ export interface Order {
     | 'cancelled';
   createdAt: number; // timestamp
   orderMode: 'pickup' | 'delivery';
-  paymentMethod: 'cash' | 'online';
+  paymentMethod: 'cash' | 'online' | 'manual_transfer';
   paymentStatus: 'unpaid' | 'paid';
   branchId?: string | null;
   addressId?: string | null;
+  receiptUrl?: string | null;
 }
