@@ -72,7 +72,7 @@ const OrderHistoryScreen = ({navigation}: any) => {
             {itemCount} {itemCount === 1 ? 'item' : 'items'}
           </Text>
           <Text style={styles.totalAmount}>
-            $ {item.totalAmount.toFixed(2)}
+            RM {item.totalAmount.toFixed(2)}
           </Text>
         </View>
       </TouchableOpacity>
