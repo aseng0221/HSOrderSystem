@@ -17,18 +17,15 @@ const {width} = Dimensions.get('window');
 
 const ProductDetailScreen = ({route, navigation}: any) => {
   const {
-    product, 
+    product,
     globalOptions: allGlobalOptions,
     cartItemId,
     initialQuantity,
-    initialSelectedOptions
+    initialSelectedOptions,
   } = route.params;
-  
+
   const {addItem, removeItem} = useCart();
   const [quantity, setQuantity] = useState(initialQuantity || 1);
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string[]>
-  >(initialSelectedOptions || {});
 
   // Resolve Global Options (Option B)
   const resolvedOptions = useMemo(() => {
@@ -36,6 +33,25 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       .map((id: string) => allGlobalOptions?.find((g: any) => g.id === id))
       .filter(Boolean);
   }, [product, allGlobalOptions]);
+
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string[]>
+  >(() => {
+    if (initialSelectedOptions) {
+      return initialSelectedOptions;
+    }
+
+    const defaults: Record<string, string[]> = {};
+    resolvedOptions.forEach((group: any) => {
+      const defaultSelections = group.options
+        .filter((opt: any) => opt.isDefault)
+        .map((opt: any) => opt.id);
+      if (defaultSelections.length > 0) {
+        defaults[group.id] = defaultSelections;
+      }
+    });
+    return defaults;
+  });
 
   const {unitPrice, totalPrice} = useMemo(() => {
     let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
@@ -59,12 +75,12 @@ const ProductDetailScreen = ({route, navigation}: any) => {
         });
       });
 
-    const unitPrice = basePrice + optionsPrice;
+    const calculatedUnitPrice = basePrice + optionsPrice;
     return {
-      unitPrice,
-      totalPrice: unitPrice * quantity,
+      unitPrice: calculatedUnitPrice,
+      totalPrice: calculatedUnitPrice * quantity,
     };
-  }, [product, selectedOptions, quantity]);
+  }, [product, selectedOptions, quantity, resolvedOptions]);
 
   const handleOptionSelect = (
     groupId: string,
@@ -221,7 +237,9 @@ const ProductDetailScreen = ({route, navigation}: any) => {
             <Text style={styles.buyBtnText}>Buy Now</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
-            <Text style={styles.cartBtnText}>{cartItemId ? 'Update Cart' : 'Add To Cart'}</Text>
+            <Text style={styles.cartBtnText}>
+              {cartItemId ? 'Update Cart' : 'Add To Cart'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

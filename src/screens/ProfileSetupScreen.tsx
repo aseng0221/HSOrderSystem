@@ -78,7 +78,12 @@ const ProfileSetupScreen = ({navigation}: any) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Icon name="account-outline" size={24} color={Colors.grey} style={styles.inputIcon} />
+                <Icon
+                  name="account-outline"
+                  size={24}
+                  color={Colors.grey}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Name (e.g. John Doe)"
@@ -90,7 +95,12 @@ const ProfileSetupScreen = ({navigation}: any) => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Icon name="phone-outline" size={24} color={Colors.grey} style={styles.inputIcon} />
+                <Icon
+                  name="phone-outline"
+                  size={24}
+                  color={Colors.grey}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Contact Number (e.g. 0123456789)"

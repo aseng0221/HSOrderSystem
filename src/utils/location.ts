@@ -36,7 +36,7 @@ export const getCurrentLocation = (): Promise<{
   latitude: number;
   longitude: number;
 }> => {
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     try {
       const isEmulator = await DeviceInfo.isEmulator();
       if (isEmulator) {

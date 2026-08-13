@@ -113,7 +113,9 @@ export const navigationRef = createNavigationContainerRef();
 const AppNavigator = () => {
   React.useEffect(() => {
     const handleUrl = async (url: string | null) => {
-      if (!url) return;
+      if (!url) {
+        return;
+      }
 
       let targetUrl = url;
       if (url.startsWith('nextdoor://magic-link')) {
@@ -128,14 +130,23 @@ const AppNavigator = () => {
           const email = await getSavedEmail();
           if (!email) {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('Login' as never, { authUrl: targetUrl } as never);
+              navigationRef.navigate(
+                'Login' as never,
+                {authUrl: targetUrl} as never,
+              );
             }
             return;
           }
-          const userCredential = await auth().signInWithEmailLink(email, targetUrl);
+          const userCredential = await auth().signInWithEmailLink(
+            email,
+            targetUrl,
+          );
           const user = userCredential.user;
 
-          const userDoc = await firestore().collection('users').doc(user.uid).get();
+          const userDoc = await firestore()
+            .collection('users')
+            .doc(user.uid)
+            .get();
           const userData = userDoc.data();
           if (!userData?.displayName || !userData?.phoneNumber) {
             if (navigationRef.isReady()) {
@@ -150,7 +161,9 @@ const AppNavigator = () => {
     };
 
     Linking.getInitialURL().then(handleUrl);
-    const subscription = Linking.addEventListener('url', (event) => handleUrl(event.url));
+    const subscription = Linking.addEventListener('url', event =>
+      handleUrl(event.url),
+    );
     return () => subscription.remove();
   }, []);
 
