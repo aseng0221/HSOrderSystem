@@ -27,7 +27,7 @@ interface Product {
   id?: string;
   categoryId: string;
   name: string;
-  price: string;
+  price: number | string;
   tag: string;
   order: number;
   description?: string;
@@ -42,7 +42,7 @@ const Products = () => {
   const [formData, setFormData] = useState<Product>({
     categoryId: '',
     name: '',
-    price: 'RM 0.00',
+    price: 0,
     tag: '',
     image: '',
     order: 0,
@@ -95,7 +95,7 @@ const Products = () => {
       setFormData({
         categoryId: categories?.[0]?.id || '',
         name: '',
-        price: 'RM ',
+        price: 0,
         tag: '',
         image: '',
         order: (products?.length || 0) + 1,
@@ -129,11 +129,15 @@ const Products = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        price: Number(formData.price) || 0,
+      };
       if (editingProduct?.id) {
         const docRef = doc(db, 'products', editingProduct.id);
-        await updateDoc(docRef, {...formData});
+        await updateDoc(docRef, payload);
       } else {
-        await addDoc(productsRef, {...formData});
+        await addDoc(productsRef, payload);
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -255,7 +259,7 @@ const Products = () => {
                       'Unknown'}
                   </span>
                 </td>
-                <td>{prod.price}</td>
+                <td>RM {Number(prod.price).toFixed(2)}</td>
                 <td>
                   {prod.tag && (
                     <span
@@ -348,14 +352,14 @@ const Products = () => {
                 <div className="form-group">
                   <label>Price (Formatted)</label>
                   <input
-                    type="text"
+                    type="number"
+                    step="0.01"
                     className="form-control"
                     required
                     value={formData.price}
                     onChange={e =>
                       setFormData({...formData, price: e.target.value})
                     }
-                    placeholder="e.g. RM 11.20"
                   />
                 </div>
                 <div className="form-group">

@@ -39,7 +39,7 @@ export interface Product {
   categoryId: string;
   name: string;
   tag: string;
-  price: string; // Base price as string (e.g., "RM 11.20")
+  price: number;
   order: number;
   image?: string;
   description?: string;

@@ -311,15 +311,14 @@ const CartScreen = ({navigation}: any) => {
                    <View style={styles.crossSellImage} />
                  )}
                  <Text style={styles.crossSellName} numberOfLines={2}>{item.name}</Text>
-                 <Text style={styles.crossSellPrice}>+ {item.price.startsWith('RM') ? item.price : `RM ${item.price}`}</Text>
+                 <Text style={styles.crossSellPrice}>+ RM {item.price.toFixed(2)}</Text>
                  <TouchableOpacity style={styles.addBtn} onPress={() => {
-                   const parsedPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
                    addItem({
                      id: `${item.id}-${Date.now()}`,
                      product: item,
                      quantity: 1,
                      selectedOptions: {},
-                     unitPrice: parsedPrice
+                     unitPrice: item.price
                    });
                    Alert.alert('Added', `${item.name} has been added to your cart.`);
                  }}>
