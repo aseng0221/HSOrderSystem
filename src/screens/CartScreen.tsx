@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,14 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
-import {Colors, Spacing, BorderRadius} from '../theme';
-import {useCart} from '../context/CartContext';
-import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
-import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
-import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
-import {useOrder} from '../context/OrderContext';
-import {KEYS} from '../config/keys';
-import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
+import { Colors, Spacing, BorderRadius } from '../theme';
+import { useCart } from '../context/CartContext';
+import { useOrderHistoryViewModel } from '../viewmodels/useOrderHistoryViewModel';
+import { useRewardsViewModel } from '../viewmodels/useRewardsViewModel';
+import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { useOrder } from '../context/OrderContext';
+import { KEYS } from '../config/keys';
+import { useMenuViewModel } from '../viewmodels/useMenuViewModel';
 
 const PAYMENT_METHODS = [
   {
@@ -50,17 +50,17 @@ const PAYMENT_METHODS = [
     subtitle: '',
     icon: 'credit-card-outline',
   },
-  {id: 'apple_pay', title: 'Apple Pay', subtitle: '', icon: 'apple'},
+  { id: 'apple_pay', title: 'Apple Pay', subtitle: '', icon: 'apple' },
 ];
 
-const CartScreen = ({navigation}: any) => {
-  const {cart, totalPrice, updateQuantity, removeItem, clearCart, addItem} =
+const CartScreen = ({ navigation }: any) => {
+  const { cart, totalPrice, updateQuantity, removeItem, clearCart, addItem } =
     useCart();
-  const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
-  const {addPointsForPurchase} = useRewardsViewModel();
-  const {user} = useAuthViewModel();
-  const {orderMode, selectedBranch, selectedAddress} = useOrder();
-  const {products, globalOptions} = useMenuViewModel();
+  const { createOrder, updateOrderPaymentStatus } = useOrderHistoryViewModel();
+  const { addPointsForPurchase } = useRewardsViewModel();
+  const { user } = useAuthViewModel();
+  const { orderMode, selectedBranch, selectedAddress } = useOrder();
+  const { products, globalOptions } = useMenuViewModel();
 
   const crossSellItems = useMemo(() => {
     // Only pick items not already in the cart, max 4
@@ -158,7 +158,7 @@ const CartScreen = ({navigation}: any) => {
             try {
               result = JSON.parse(data);
             } catch (e) {
-              result = {status_code: data};
+              result = { status_code: data };
             }
           } else {
             result = data;
@@ -201,7 +201,7 @@ const CartScreen = ({navigation}: any) => {
               <Icon name="chevron-left" size={30} color={Colors.primary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Payment Methods</Text>
-            <View style={{width: 30}} />
+            <View style={{ width: 30 }} />
           </View>
 
           <ScrollView>
@@ -227,7 +227,7 @@ const CartScreen = ({navigation}: any) => {
                   <Text style={styles.paymentMethodTitle}>
                     {method.title}{' '}
                     {method.subtitle ? (
-                      <Text style={{color: Colors.textSecondary}}>
+                      <Text style={{ color: Colors.textSecondary }}>
                         {method.subtitle}
                       </Text>
                     ) : (
@@ -257,8 +257,8 @@ const CartScreen = ({navigation}: any) => {
                 )}
                 {(method.id === 'online_banking' ||
                   method.id === 'ewallet') && (
-                  <Icon name="chevron-down" size={20} color={Colors.grey} />
-                )}
+                    <Icon name="chevron-down" size={20} color={Colors.grey} />
+                  )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -282,11 +282,11 @@ const CartScreen = ({navigation}: any) => {
           <Icon name="chevron-left" size={30} color={Colors.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Order confirmation</Text>
-        <View style={{width: 30}} />
+        <View style={{ width: 30 }} />
       </View>
 
       <KeyboardAvoidingView
-        style={{flex: 1}}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={styles.scrollView}
@@ -303,20 +303,20 @@ const CartScreen = ({navigation}: any) => {
                   name="map-marker-outline"
                   size={16}
                   color={Colors.textSecondary}
-                  style={{marginTop: 2}}
+                  style={{ marginTop: 2 }}
                 />
                 <Text style={styles.branchAddress}>
                   {selectedBranch?.address || 'Location Address'}
                 </Text>
               </View>
-              <View style={styles.pickupTimeRow}>
+              {/* <View style={styles.pickupTimeRow}>
                 <Icon
                   name="clock-outline"
                   size={16}
                   color={Colors.textSecondary}
                 />
-                <Text style={styles.pickupTimeText}>Pickup at Outlet:</Text>
-              </View>
+                <Text style={styles.pickupTimeText}>Pickup at Outlet</Text>
+              </View> */}
             </View>
             <View style={styles.pickupIllustration}>
               <Icon
@@ -393,7 +393,7 @@ const CartScreen = ({navigation}: any) => {
               <View key={item.id} style={styles.crossSellCard}>
                 {item.image ? (
                   <Image
-                    source={{uri: item.image, cache: 'force-cache'}}
+                    source={{ uri: item.image, cache: 'force-cache' }}
                     style={styles.crossSellImage}
                   />
                 ) : (
@@ -439,7 +439,7 @@ const CartScreen = ({navigation}: any) => {
               name="comment-edit-outline"
               size={20}
               color={Colors.grey}
-              style={{marginTop: 5}}
+              style={{ marginTop: 5 }}
             />
             <TextInput
               style={styles.remarksInput}
@@ -456,7 +456,7 @@ const CartScreen = ({navigation}: any) => {
           <Text style={styles.sectionTitle}>
             Packaging{' '}
             <Text
-              style={{fontWeight: 'normal', color: Colors.grey, fontSize: 12}}>
+              style={{ fontWeight: 'normal', color: Colors.grey, fontSize: 12 }}>
               [If you really really really need it :)]
             </Text>
           </Text>
@@ -517,10 +517,10 @@ const CartScreen = ({navigation}: any) => {
               marginBottom: 8,
             }}>
             <Text
-              style={[styles.sectionTitle, {marginTop: 0, marginBottom: 0}]}>
+              style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0 }]}>
               Vouchers
             </Text>
-            <View style={[styles.blueDot, {marginLeft: 4, marginBottom: 0}]} />
+            <View style={[styles.blueDot, { marginLeft: 4, marginBottom: 0 }]} />
           </View>
           <TouchableOpacity style={styles.voucherBox}>
             <View style={styles.addVoucherLeft}>
@@ -565,7 +565,7 @@ const CartScreen = ({navigation}: any) => {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.taxText}>NextDoor Points Earned</Text>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={styles.zBadge}>
                 <Text style={styles.zBadgeText}>N</Text>
               </View>
@@ -579,7 +579,7 @@ const CartScreen = ({navigation}: any) => {
             <Text style={styles.taxText}>🍹 +{cupCount} cups</Text>
           </View>
 
-          <View style={{height: 50}} />
+          <View style={{ height: 50 }} />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -921,7 +921,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#EEE',
     elevation: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: -2},
+    shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
