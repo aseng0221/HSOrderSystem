@@ -208,7 +208,7 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
                         {opt.name}{' '}
                         {opt.price ? (
                           <Text>
-                            (+$
+                            (+RM{' '}
                             {(typeof opt.price === 'number'
                               ? opt.price
                               : parseFloat(opt.price.replace(/[^\d.]/g, '')) ||
