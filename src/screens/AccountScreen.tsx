@@ -60,18 +60,24 @@ const AccountScreen = ({navigation}: any) => {
     );
   }
 
-  const handleTopup = () => {
-    const amount = parseFloat(topupAmount);
-    if (isNaN(amount) || amount < 20) {
-      Alert.alert('Invalid Amount', 'Minimum top-up amount is RM 20.');
-      return;
-    }
+  const TOPUP_PACKAGES = [
+    { price: 30, bonus: 3 },
+    { price: 50, bonus: 6 },
+    { price: 100, bonus: 15 },
+  ];
+
+  const handleTopup = (packageIndex: number) => {
+    const pkg = TOPUP_PACKAGES[packageIndex];
+    if (!pkg) return;
 
     setTopupModalVisible(false);
 
     if (!user) {
       return;
     }
+
+    const amount = pkg.price;
+    const totalCredit = pkg.price + pkg.bonus;
 
     const paymentDetails = {
       mp_username: KEYS.FIUU.USERNAME,
@@ -243,27 +249,28 @@ const AccountScreen = ({navigation}: any) => {
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Top Up Wallet</Text>
-                <Text style={styles.modalSubtitle}>Minimum amount: RM 20</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="0.00"
-                  keyboardType="numeric"
-                  value={topupAmount}
-                  onChangeText={setTopupAmount}
-                />
-                <View style={styles.modalActions}>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.cancelButton]}
-                    onPress={() => setTopupModalVisible(false)}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modalButton, styles.confirmButton]}
-                    onPress={handleTopup}>
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </TouchableOpacity>
+                <Text style={styles.modalTitle}>Top Up Packages</Text>
+                <Text style={styles.modalSubtitle}>Select a package to top up</Text>
+
+                <View style={styles.packagesContainer}>
+                  {TOPUP_PACKAGES.map((pkg, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.packageButton}
+                      onPress={() => handleTopup(index)}>
+                      <Text style={styles.packagePrice}>RM {pkg.price}</Text>
+                      <View style={styles.packageBonusBadge}>
+                        <Text style={styles.packageBonusText}>+ RM {pkg.bonus} Bonus</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton, { marginTop: Spacing.lg, width: '100%' }]}
+                  onPress={() => setTopupModalVisible(false)}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -287,6 +294,38 @@ const styles = StyleSheet.create({
   content: {
     padding: Spacing.xl,
     alignItems: 'center',
+  },
+  packagesContainer: {
+    width: '100%',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  packageButton: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.backgroundLight,
+  },
+  packagePrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  packageBonusBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  packageBonusText: {
+    color: '#2E7D32',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   profileHeader: {
     alignItems: 'center',
