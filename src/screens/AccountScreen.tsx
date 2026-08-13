@@ -27,8 +27,15 @@ import {KEYS} from '../config/keys';
 import {clearStoredData} from '../utils/storage';
 
 const AccountScreen = ({navigation}: any) => {
-  const {isAuthenticated, user, profile, walletBalance, updateWalletBalance, logout, loading} =
-    useAuthViewModel();
+  const {
+    isAuthenticated,
+    user,
+    profile,
+    walletBalance,
+    updateWalletBalance,
+    logout,
+    loading,
+  } = useAuthViewModel();
   const {resetOrder} = useOrder();
   const [topupModalVisible, setTopupModalVisible] = React.useState(false);
   const [topupAmount, setTopupAmount] = React.useState('');
@@ -80,7 +87,8 @@ const AccountScreen = ({navigation}: any) => {
       mp_bill_description: `Wallet Top-Up - RM${amount.toFixed(0)}`,
       mp_bill_name: profile?.displayName || user?.displayName || 'Guest User',
       mp_bill_email: profile?.email || user?.email || 'guest@example.com',
-      mp_bill_mobile: profile?.phoneNumber || user?.phoneNumber || '+60123456789',
+      mp_bill_mobile:
+        profile?.phoneNumber || user?.phoneNumber || '+60123456789',
       mp_closebutton_display: true,
     };
 
@@ -109,7 +117,9 @@ const AccountScreen = ({navigation}: any) => {
               await updateWalletBalance(amount);
               Alert.alert(
                 'Success',
-                `Successfully topped up RM ${amount.toFixed(2)} to your wallet.`,
+                `Successfully topped up RM ${amount.toFixed(
+                  2,
+                )} to your wallet.`,
               );
               setTopupAmount('');
             } else if (result.status_code === '11') {
@@ -121,12 +131,18 @@ const AccountScreen = ({navigation}: any) => {
             }
           } catch (e) {
             console.error('Error parsing payment result:', e);
-            Alert.alert('Error', 'An error occurred while processing the payment result.');
+            Alert.alert(
+              'Error',
+              'An error occurred while processing the payment result.',
+            );
           }
         });
       } catch (error) {
         console.error('Molpay SDK execution error:', error);
-        Alert.alert('System Error', 'Could not open the payment gateway. Please try again.');
+        Alert.alert(
+          'System Error',
+          'Could not open the payment gateway. Please try again.',
+        );
       }
     }, 400);
   };
@@ -150,7 +166,7 @@ const AccountScreen = ({navigation}: any) => {
             <Text style={styles.subtitle}>
               {user?.phoneNumber || user?.email}
             </Text>
-  
+
             <View style={styles.walletContainer}>
               <View>
                 <Text style={styles.walletLabel}>Wallet Balance</Text>
@@ -164,9 +180,8 @@ const AccountScreen = ({navigation}: any) => {
                 <Text style={styles.topupButtonText}>Top Up</Text>
               </TouchableOpacity>
             </View>
-
           </View>
-  
+
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
@@ -175,7 +190,9 @@ const AccountScreen = ({navigation}: any) => {
               <Text style={styles.menuItemText}>Order History</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('EditProfile')}>
               <Icon
                 name="account-edit-outline"
                 size={24}
@@ -194,12 +211,16 @@ const AccountScreen = ({navigation}: any) => {
               onPress={() =>
                 navigation.navigate('AddressSelection', {mode: 'manage'})
               }>
-              <Icon name="map-marker-outline" size={24} color={Colors.primary} />
+              <Icon
+                name="map-marker-outline"
+                size={24}
+                color={Colors.primary}
+              />
               <Text style={styles.menuItemText}>Manage Addresses</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
           </View>
-  
+
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={async () => {

@@ -17,14 +17,18 @@ function App(): React.JSX.Element {
       if (remoteMessage?.data?.screen) {
         // Wait for navigation container to be ready
         if (navigationRef.isReady()) {
-          navigationRef.navigate(remoteMessage.data.screen as any, remoteMessage.data.params);
+          navigationRef.navigate(
+            remoteMessage.data.screen as any,
+            remoteMessage.data.params,
+          );
         }
       }
     };
 
     // 3. Listeners
     const unsubscribeForeground = notificationService.setupForegroundListener();
-    const unsubscribeBackground = notificationService.setupBackgroundTapListener(handleNavigation);
+    const unsubscribeBackground =
+      notificationService.setupBackgroundTapListener(handleNavigation);
     notificationService.checkInitialNotification(handleNavigation);
 
     return () => {

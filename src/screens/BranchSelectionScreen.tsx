@@ -203,8 +203,7 @@ const BranchSelectionScreen = ({navigation}: any) => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         }}
-        mapPadding={{ top: 0, right: 0, bottom: 300, left: 0 }}
-      >
+        mapPadding={{top: 0, right: 0, bottom: 300, left: 0}}>
         {userLocation && (
           <Marker
             coordinate={userLocation}

@@ -65,6 +65,7 @@ exports[`ProductCard renders correctly with all props 1`] = `
       resizeMode="contain"
       source={
         {
+          "cache": "force-cache",
           "uri": "https://example.com/image.jpg",
         }
       }

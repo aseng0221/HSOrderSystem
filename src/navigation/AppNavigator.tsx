@@ -27,6 +27,7 @@ import firestore from '@react-native-firebase/firestore';
 import {getSavedEmail} from '../utils/storage';
 import {Linking, Alert} from 'react-native';
 import LegalDetailScreen from '../screens/LegalDetailScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import {Colors} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -113,7 +114,9 @@ export const navigationRef = createNavigationContainerRef();
 const AppNavigator = () => {
   React.useEffect(() => {
     const handleUrl = async (url: string | null) => {
-      if (!url) return;
+      if (!url) {
+        return;
+      }
 
       let targetUrl = url;
       if (url.startsWith('nextdoor://magic-link')) {
@@ -128,14 +131,23 @@ const AppNavigator = () => {
           const email = await getSavedEmail();
           if (!email) {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('Login' as never, { authUrl: targetUrl } as never);
+              navigationRef.navigate(
+                'Login' as never,
+                {authUrl: targetUrl} as never,
+              );
             }
             return;
           }
-          const userCredential = await auth().signInWithEmailLink(email, targetUrl);
+          const userCredential = await auth().signInWithEmailLink(
+            email,
+            targetUrl,
+          );
           const user = userCredential.user;
 
-          const userDoc = await firestore().collection('users').doc(user.uid).get();
+          const userDoc = await firestore()
+            .collection('users')
+            .doc(user.uid)
+            .get();
           const userData = userDoc.data();
           if (!userData?.displayName || !userData?.phoneNumber) {
             if (navigationRef.isReady()) {
@@ -150,7 +162,9 @@ const AppNavigator = () => {
     };
 
     Linking.getInitialURL().then(handleUrl);
-    const subscription = Linking.addEventListener('url', (event) => handleUrl(event.url));
+    const subscription = Linking.addEventListener('url', event =>
+      handleUrl(event.url),
+    );
     return () => subscription.remove();
   }, []);
 
@@ -183,6 +197,7 @@ const AppNavigator = () => {
           <Stack.Screen name="OTP" component={OTPScreen} />
           <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
           <Stack.Screen name="LegalDetail" component={LegalDetailScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>

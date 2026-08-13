@@ -5,4 +5,5 @@ export interface UserProfile {
   displayName?: string;
   points: number;
   lastCheckInDate?: number; // timestamp
+  birthdate?: string; // YYYY-MM-DD
 }
