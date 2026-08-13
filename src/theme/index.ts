@@ -1,6 +1,8 @@
 export const Colors = {
-  primary: '#002D72', // Navy Blue (ZUS Coffee inspired)
-  secondary: '#FFD700', // Gold accents
+  primary: '#85A183',
+  secondary: '#4B654A',
+  tertiary: '#D9E0D8',
+  neutral: '#777774',
   background: '#FFFFFF',
   surface: '#F8F9FA',
   text: '#1A1A1A',
