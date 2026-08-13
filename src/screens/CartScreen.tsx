@@ -75,11 +75,9 @@ const CartScreen = ({ navigation }: any) => {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[2]); // Default E-Wallet
 
-  const sstAmount = totalPrice * 0.06;
   const subtotal = totalPrice; // Assuming totalPrice in cart doesn't include SST for this calculation
   const grandTotal = subtotal; // Assuming display price is inclusive of SST for simplicity, or we add it. The screenshot shows Amount RM 6.80, Subtotal RM 6.80, Grand Total RM 6.80, and 6% SST (RM 0.38). This implies the base price is inclusive of SST.
-  const pointsEarned = Math.floor(grandTotal * 3); // Approx 20pts for RM6.80
-  const cupCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const pointsEarned = Math.floor(grandTotal);
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -560,23 +558,13 @@ const CartScreen = ({ navigation }: any) => {
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.taxText}>6% SST</Text>
-            <Text style={styles.taxText}>(RM {sstAmount.toFixed(2)})</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.taxText}>NextDoor Points Earned</Text>
+            <Text style={styles.summaryText}>NextDoor Points Earned</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={styles.zBadge}>
                 <Text style={styles.zBadgeText}>N</Text>
               </View>
-              <Text style={styles.taxText}> {pointsEarned} pts</Text>
+              <Text style={styles.summaryText}> {pointsEarned} pts</Text>
             </View>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.taxText}>
-              Cup Count <Icon name="information-outline" size={12} />
-            </Text>
-            <Text style={styles.taxText}>🍹 +{cupCount} cups</Text>
           </View>
 
           <View style={{ height: 50 }} />
