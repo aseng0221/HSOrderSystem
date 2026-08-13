@@ -19,6 +19,7 @@ import {Colors, Spacing, BorderRadius} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ReactNativeBiometrics from 'react-native-biometrics';
 import {getSavedPhone, clearStoredData, saveEmail} from '../utils/storage';
+import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 
 const LoginScreen = ({navigation, route}: any) => {
   const [email, setEmail] = useState('');
@@ -26,6 +27,15 @@ const LoginScreen = ({navigation, route}: any) => {
   const authUrl = route?.params?.authUrl;
   const [isBiometricView, setIsBiometricView] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const {isAuthenticated} = useAuthViewModel();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      Alert.alert('Success', 'Logged in successfully.');
+      navigation.goBack();
+    }
+  }, [isAuthenticated, navigation]);
 
   useEffect(() => {
     checkSavedUser();
@@ -101,7 +111,12 @@ const LoginScreen = ({navigation, route}: any) => {
       </View>
 
       <View style={styles.inputContainer}>
-        <Icon name="email-outline" size={24} color={Colors.grey} style={{marginRight: 10}} />
+        <Icon
+          name="email-outline"
+          size={24}
+          color={Colors.grey}
+          style={{marginRight: 10}}
+        />
         <TextInput
           style={styles.input}
           placeholder="Email Address"
@@ -124,10 +139,16 @@ const LoginScreen = ({navigation, route}: any) => {
           setLoading(true);
           try {
             if (authUrl) {
-              const userCredential = await auth().signInWithEmailLink(email, authUrl);
+              const userCredential = await auth().signInWithEmailLink(
+                email,
+                authUrl,
+              );
               const user = userCredential.user;
 
-              const userDoc = await firestore().collection('users').doc(user.uid).get();
+              const userDoc = await firestore()
+                .collection('users')
+                .doc(user.uid)
+                .get();
               const userData = userDoc.data();
               if (!userData?.displayName || !userData?.phoneNumber) {
                 navigation.navigate('ProfileSetup');
@@ -155,13 +176,22 @@ const LoginScreen = ({navigation, route}: any) => {
             );
           } catch (error: any) {
             console.error(error);
-            Alert.alert('Failed to send link', error.message || 'Please try again.');
+            Alert.alert(
+              'Failed to send link',
+              error.message || 'Please try again.',
+            );
           } finally {
             setLoading(false);
           }
         }}
         disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Please Wait...' : (authUrl ? 'Complete Sign In' : 'Send Login Link')}</Text>
+        <Text style={styles.buttonText}>
+          {loading
+            ? 'Please Wait...'
+            : authUrl
+            ? 'Complete Sign In'
+            : 'Send Login Link'}
+        </Text>
       </TouchableOpacity>
     </>
   );

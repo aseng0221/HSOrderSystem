@@ -1,1 +1,207 @@
-<!DOCTYPE html><html><head><title>NextDoor Brew App</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background-color:#f5f5f5;text-align:center;padding:20px}h1{color:#ff6b00;margin-bottom:10px}p{color:#666;font-size:18px;max-width:500px;line-height:1.5}</style></head><body><h1>NextDoor Brew App</h1><p>Please open this link on your mobile device to complete the sign-in process.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NextDoor Brew - Verification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@800&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-sage: #85A183;
+      --secondary-forest: #4B654A;
+      --tertiary-soft: #D9E0D8;
+      --neutral-grey: #777774;
+      --bg-warm: #ECEFEA;
+      --card-bg: #FFFFFF;
+      --text-dark: #2C352B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-warm);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Ambient background glow */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(133, 161, 131, 0.25) 0%, rgba(133, 161, 131, 0) 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--tertiary-soft);
+      border-radius: 28px;
+      padding: 44px 36px;
+      text-align: center;
+      box-shadow: 0 16px 32px rgba(75, 101, 74, 0.05), 0 4px 8px rgba(75, 101, 74, 0.02);
+      animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .logo-container {
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-icon {
+      font-size: 44px;
+      color: var(--secondary-forest);
+      margin-bottom: 12px;
+      display: inline-block;
+      animation: gentle-bounce 3s infinite ease-in-out;
+    }
+
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    h1 {
+      font-family: 'Epilogue', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--secondary-forest);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .description {
+      font-size: 15px;
+      color: var(--neutral-grey);
+      line-height: 1.6;
+      margin-bottom: 36px;
+      font-weight: 400;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 16px 24px;
+      background-color: var(--secondary-forest);
+      border: none;
+      border-radius: 16px;
+      color: #FFFFFF;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 8px 16px rgba(75, 101, 74, 0.12);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #5D7A5C;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px rgba(75, 101, 74, 0.18);
+    }
+
+    .btn:active {
+      background-color: #3D533C;
+      transform: translateY(1px);
+    }
+
+    .footer {
+      margin-top: 36px;
+      font-size: 13px;
+      color: var(--neutral-grey);
+    }
+
+    .footer a {
+      color: var(--secondary-forest);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--primary-sage);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-container">
+      <span class="logo-icon">🌿</span>
+      <h1>NextDoor Brew</h1>
+    </div>
+    
+    <p class="description">
+      We're opening the NextDoor Brew app to complete your verification. Click the button below if the app did not open automatically.
+    </p>
+
+    <a href="#" id="open-app-btn" class="btn">Open NextDoor App</a>
+
+    <div class="footer">
+      Powered by <a href="https://nextdoorbrew.com">NextDoorBrew.com</a>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // 1. Get the current URL
+      var currentUrl = window.location.href;
+      
+      // 2. Build the app-specific deep link using custom scheme
+      var deepLinkUrl = "nextdoor://magic-link?url=" + encodeURIComponent(currentUrl);
+      
+      // 3. Update the button href
+      var btn = document.getElementById('open-app-btn');
+      if (btn) {
+        btn.href = deepLinkUrl;
+      }
+      
+      // 4. Check if the user is on a mobile device and trigger auto-redirect
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        setTimeout(function() {
+          window.location.href = deepLinkUrl;
+        }, 500);
+      }
+    })();
+  </script>
+</body>
+</html>

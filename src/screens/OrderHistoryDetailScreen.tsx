@@ -73,9 +73,24 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
       mp_closebutton_display: true,
     };
 
-    molpay.startMolpay(paymentDetails, async (data: string) => {
+    molpay.startMolpay(paymentDetails, async (data: any) => {
       try {
-        const result = JSON.parse(data);
+        let result;
+        if (typeof data === 'string') {
+          try {
+            result = JSON.parse(data);
+          } catch (e) {
+            result = {status_code: data};
+          }
+        } else {
+          result = data;
+        }
+
+        if (!result) {
+          console.log('No payment data received from SDK');
+          return;
+        }
+
         if (result.status_code === '00') {
           // Payment Success
           await updateOrderPaymentStatus(order.id, 'paid');

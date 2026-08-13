@@ -28,15 +28,27 @@ import {db} from '../services/firebase';
 import {getAuth} from '@react-native-firebase/auth';
 import {getCrashlytics} from '@react-native-firebase/crashlytics';
 import molpay from 'fiuu-mobile-xdk-reactnative';
+import {KEYS} from '../config/keys';
+import {clearStoredData} from '../utils/storage';
 
 const AccountScreen = ({navigation}: any) => {
-  const {isAuthenticated, user, walletBalance, updateWalletBalance, logout} =
+  const {isAuthenticated, user, profile, walletBalance, updateWalletBalance, logout, loading} =
     useAuthViewModel();
   const {resetOrder} = useOrder();
   const [isSeeding, setIsSeeding] = React.useState(false);
   const [isSeedingOrders, setIsSeedingOrders] = React.useState(false);
   const [topupModalVisible, setTopupModalVisible] = React.useState(false);
   const [topupAmount, setTopupAmount] = React.useState('');
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -98,46 +110,58 @@ const AccountScreen = ({navigation}: any) => {
       mp_currency: 'MYR',
       mp_country: 'MY',
       mp_channel: 'multi',
-      mp_bill_description: 'Wallet Top-Up',
-      mp_bill_name: user?.displayName || 'Guest User',
-      mp_bill_email: user?.email || 'guest@example.com',
-      mp_bill_mobile: user?.phoneNumber || '+60123456789',
+      mp_bill_description: `Wallet Top-Up - RM${amount.toFixed(0)}`,
+      mp_bill_name: profile?.displayName || user?.displayName || 'Guest User',
+      mp_bill_email: profile?.email || user?.email || 'guest@example.com',
+      mp_bill_mobile: profile?.phoneNumber || user?.phoneNumber || '+60123456789',
       mp_closebutton_display: true,
     };
 
-    try {
-      molpay.startMolpay(paymentDetails, async (data: string) => {
-        try {
-          if (!data) {
-            console.log('No payment data received from SDK');
-            return;
+    setTimeout(() => {
+      try {
+        molpay.startMolpay(paymentDetails, async (data: any) => {
+          try {
+            let result;
+            if (typeof data === 'string') {
+              try {
+                result = JSON.parse(data);
+              } catch (e) {
+                result = {status_code: data};
+              }
+            } else {
+              result = data;
+            }
+
+            if (!result) {
+              console.log('No payment data received from SDK');
+              return;
+            }
+
+            if (result.status_code === '00') {
+              // Payment Success
+              await updateWalletBalance(amount);
+              Alert.alert(
+                'Success',
+                `Successfully topped up RM ${amount.toFixed(2)} to your wallet.`,
+              );
+              setTopupAmount('');
+            } else if (result.status_code === '11') {
+              Alert.alert('Failed', 'Top-up payment failed or was cancelled.');
+            } else if (result.status_code === '22') {
+              Alert.alert('Pending', 'Top-up payment is pending.');
+            } else {
+              console.log('Payment status unknown:', result.status_code);
+            }
+          } catch (e) {
+            console.error('Error parsing payment result:', e);
+            Alert.alert('Error', 'An error occurred while processing the payment result.');
           }
-          
-          const result = JSON.parse(data);
-          if (result.status_code === '00') {
-            // Payment Success
-            await updateWalletBalance(amount);
-            Alert.alert(
-              'Success',
-              `Successfully topped up RM ${amount.toFixed(2)} to your wallet.`,
-            );
-            setTopupAmount('');
-          } else if (result.status_code === '11') {
-            Alert.alert('Failed', 'Top-up payment failed or was cancelled.');
-          } else if (result.status_code === '22') {
-            Alert.alert('Pending', 'Top-up payment is pending.');
-          } else {
-            console.log('Payment status unknown:', result.status_code);
-          }
-        } catch (e) {
-          console.error('Error parsing payment result:', e);
-          Alert.alert('Error', 'An error occurred while processing the payment result.');
-        }
-      });
-    } catch (error) {
-      console.error('Molpay SDK execution error:', error);
-      Alert.alert('System Error', 'Could not open the payment gateway. Please try again.');
-    }
+        });
+      } catch (error) {
+        console.error('Molpay SDK execution error:', error);
+        Alert.alert('System Error', 'Could not open the payment gateway. Please try again.');
+      }
+    }, 400);
   };
 
   return (
@@ -262,7 +286,7 @@ const AccountScreen = ({navigation}: any) => {
                   Alert.alert('Error', e.message);
                 }
               }}>
-              <Icon name="alert-circle" size={24} color={Colors.warning || '#FFCC00'} />
+              <Icon name="alert-circle" size={24} color="#FFCC00" />
               <Text style={styles.menuItemText}>Send Non-Fatal Error</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>

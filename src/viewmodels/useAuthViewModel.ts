@@ -9,6 +9,7 @@ import {getFirestore, serverTimestamp, increment} from '@react-native-firebase/f
 
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [profileCompleted, setProfileCompleted] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
@@ -16,21 +17,42 @@ export const useAuthViewModel = () => {
   useEffect(() => {
     let unsubscribeProfile: () => void;
 
-    const subscriber = onAuthStateChanged(firebaseAuth, async userState => {
+    const subscriber = onAuthStateChanged(firebaseAuth, async (userState: FirebaseAuthTypes.User | null) => {
       setUser(userState);
 
       if (userState) {
         // Synchronize user profile to Firestore whenever auth state is detected
         try {
-          await getFirestore().collection('users').doc(userState.uid).set(
-            {
-              phoneNumber: userState.phoneNumber,
-              lastLogin: serverTimestamp(),
-              // Only set createdAt if it doesn't exist
+          const userRef = getFirestore().collection('users').doc(userState.uid);
+          const docSnap = await userRef.get();
+
+          if (!docSnap.exists) {
+            // Document does not exist: Initialize the profile with default values
+            await userRef.set({
+              email: userState.email || null,
+              phoneNumber: userState.phoneNumber || null,
+              points: 0,
+              walletBalance: 0,
               createdAt: serverTimestamp(),
-            },
-            {merge: true},
-          );
+              lastLogin: serverTimestamp(),
+            });
+          } else {
+            // Document exists: Update timestamps and conditionally add present fields
+            const updateData: {
+              lastLogin: ReturnType<typeof serverTimestamp>;
+              email?: string | null;
+              phoneNumber?: string | null;
+            } = {
+              lastLogin: serverTimestamp(),
+            };
+            if (userState.email) {
+              updateData.email = userState.email;
+            }
+            if (userState.phoneNumber) {
+              updateData.phoneNumber = userState.phoneNumber;
+            }
+            await userRef.update(updateData);
+          }
 
           // Listen to wallet balance updates
           unsubscribeProfile = getFirestore()
@@ -39,6 +61,7 @@ export const useAuthViewModel = () => {
             .onSnapshot(doc => {
               if (doc.exists) {
                 const data = doc.data();
+                setProfile(data);
                 setWalletBalance(data?.walletBalance || 0);
                 setProfileCompleted(!!data?.displayName && !!data?.phoneNumber);
               }
@@ -47,6 +70,7 @@ export const useAuthViewModel = () => {
           console.error('Error syncing user to Firestore:', error);
         }
       } else {
+        setProfile(null);
         setWalletBalance(0);
         setProfileCompleted(false);
       }
@@ -88,6 +112,7 @@ export const useAuthViewModel = () => {
 
   return {
     user,
+    profile,
     walletBalance,
     profileCompleted,
     loading,

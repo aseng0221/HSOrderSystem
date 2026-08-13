@@ -114,16 +114,25 @@ const AppNavigator = () => {
   React.useEffect(() => {
     const handleUrl = async (url: string | null) => {
       if (!url) return;
-      if (auth().isSignInWithEmailLink(url)) {
+
+      let targetUrl = url;
+      if (url.startsWith('nextdoor://magic-link')) {
+        const match = url.match(/[?&]url=([^&]+)/);
+        if (match) {
+          targetUrl = decodeURIComponent(match[1]);
+        }
+      }
+
+      if (auth().isSignInWithEmailLink(targetUrl)) {
         try {
           const email = await getSavedEmail();
           if (!email) {
             if (navigationRef.isReady()) {
-              navigationRef.navigate('Login' as never, { authUrl: url } as never);
+              navigationRef.navigate('Login' as never, { authUrl: targetUrl } as never);
             }
             return;
           }
-          const userCredential = await auth().signInWithEmailLink(email, url);
+          const userCredential = await auth().signInWithEmailLink(email, targetUrl);
           const user = userCredential.user;
 
           const userDoc = await firestore().collection('users').doc(user.uid).get();

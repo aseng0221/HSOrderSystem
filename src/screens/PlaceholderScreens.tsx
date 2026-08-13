@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing} from '../theme';
 import {AuthGuardView} from '../components/AuthGuardView';
@@ -22,8 +22,18 @@ const ProtectedPlaceholderScreen = ({
   title: string;
   description: string;
 }) => {
-  const {isAuthenticated} = useAuthViewModel();
+  const {isAuthenticated, loading} = useAuthViewModel();
   const navigation = useNavigation<any>();
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

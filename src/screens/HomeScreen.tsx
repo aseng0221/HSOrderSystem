@@ -55,7 +55,7 @@ const HomeScreen = ({navigation}: any) => {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.welcomeText}>
-            Morning, {user?.phoneNumber || 'Guest'}!
+            Morning, {profile?.displayName || 'Guest'}!
           </Text>
           <Text style={styles.subText}>What's your order today?</Text>
           {user && (

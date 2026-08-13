@@ -11,8 +11,8 @@
 // These dummy implementations satisfy dyld and prevent the immediate launch crash.
 // (Fibers are not actively executed by RN in this configuration).
 extern "C" {
-  void jump_fcontext(void) {}
-  void make_fcontext(void) {}
+  __attribute__((visibility("default"))) __attribute__((used)) void jump_fcontext(void) {}
+  __attribute__((visibility("default"))) __attribute__((used)) void make_fcontext(void) {}
 }
 
 @implementation AppDelegate
