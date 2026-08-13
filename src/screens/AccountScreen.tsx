@@ -5,6 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {Colors, Spacing, BorderRadius} from '../theme';
@@ -14,19 +20,8 @@ import {AuthGuardView} from '../components/AuthGuardView';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrder} from '../context/OrderContext';
 
-import {seedMenuData, seedMockOrders} from '../services/FirestoreSeeder';
-import {
-  Alert,
-  ActivityIndicator,
-  Modal,
-  TextInput,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
-
 import {db} from '../services/firebase';
 import {getAuth} from '@react-native-firebase/auth';
-import {getCrashlytics} from '@react-native-firebase/crashlytics';
 import molpay from 'fiuu-mobile-xdk-reactnative';
 import {KEYS} from '../config/keys';
 import {clearStoredData} from '../utils/storage';
@@ -35,8 +30,6 @@ const AccountScreen = ({navigation}: any) => {
   const {isAuthenticated, user, profile, walletBalance, updateWalletBalance, logout, loading} =
     useAuthViewModel();
   const {resetOrder} = useOrder();
-  const [isSeeding, setIsSeeding] = React.useState(false);
-  const [isSeedingOrders, setIsSeedingOrders] = React.useState(false);
   const [topupModalVisible, setTopupModalVisible] = React.useState(false);
   const [topupAmount, setTopupAmount] = React.useState('');
 
@@ -59,32 +52,6 @@ const AccountScreen = ({navigation}: any) => {
       />
     );
   }
-
-  const handleSeedData = async () => {
-    setIsSeeding(true);
-    const result = await seedMenuData();
-    setIsSeeding(false);
-    if (result.success) {
-      Alert.alert('Success', 'Sample menu data has been added to Firestore!');
-    } else {
-      Alert.alert('Error', 'Failed to seed data. Check console for details.');
-    }
-  };
-
-
-  const handleSeedOrders = async () => {
-    if (!user) {
-      return;
-    }
-    setIsSeedingOrders(true);
-    const result = await seedMockOrders(user.uid);
-    setIsSeedingOrders(false);
-    if (result.success) {
-      Alert.alert('Success', 'Sample orders have been added to Firestore!');
-    } else {
-      Alert.alert('Error', 'Failed to seed orders. Check console for details.');
-    }
-  };
 
   const handleTopup = () => {
     const amount = parseFloat(topupAmount);
@@ -197,28 +164,6 @@ const AccountScreen = ({navigation}: any) => {
                 <Text style={styles.topupButtonText}>Top Up</Text>
               </TouchableOpacity>
             </View>
-  
-            <TouchableOpacity
-              style={styles.seedButton}
-              onPress={handleSeedData}
-              disabled={isSeeding}>
-              {isSeeding ? (
-                <ActivityIndicator color={Colors.primary} />
-              ) : (
-                <Text style={styles.seedButtonText}>Seed Sample Menu Data</Text>
-              )}
-            </TouchableOpacity>
-  
-            <TouchableOpacity
-              style={styles.seedButton}
-              onPress={handleSeedOrders}
-              disabled={isSeedingOrders}>
-              {isSeedingOrders ? (
-                <ActivityIndicator color={Colors.primary} />
-              ) : (
-                <Text style={styles.seedButtonText}>Seed Mock Orders</Text>
-              )}
-            </TouchableOpacity>
 
           </View>
   
@@ -251,73 +196,6 @@ const AccountScreen = ({navigation}: any) => {
               }>
               <Icon name="map-marker-outline" size={24} color={Colors.primary} />
               <Text style={styles.menuItemText}>Manage Addresses</Text>
-              <Icon name="chevron-right" size={24} color={Colors.grey} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.menuContainer, {marginTop: Spacing.lg}]}>
-            <Text style={styles.sectionTitle}>Diagnostic Tools</Text>
-            
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={async () => {
-                try {
-                  await getCrashlytics().setCrashlyticsCollectionEnabled(true);
-                  await getCrashlytics().setUserId(user?.uid || 'anonymous');
-                  await getCrashlytics().setAttribute('email', user?.email || 'none');
-                  getCrashlytics().log('Manual diagnostic ping sent from AccountScreen');
-                  Alert.alert('Success', 'Diagnostic ping sent! Check Firebase dashboard in 2-5 minutes.');
-                } catch (e: any) {
-                  Alert.alert('Error', e.message);
-                }
-              }}>
-              <Icon name="account-check" size={24} color={Colors.primary} />
-              <Text style={styles.menuItemText}>Identify & Send Log</Text>
-              <Icon name="chevron-right" size={24} color={Colors.grey} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                try {
-                  getCrashlytics().recordError(new Error('CRASHLYTICS TEST: Non-fatal error for dashboard activation'));
-                  Alert.alert('Success', 'Non-fatal error sent! Restart the app to ensure upload.');
-                } catch (e: any) {
-                  Alert.alert('Error', e.message);
-                }
-              }}>
-              <Icon name="alert-circle" size={24} color="#FFCC00" />
-              <Text style={styles.menuItemText}>Send Non-Fatal Error</Text>
-              <Icon name="chevron-right" size={24} color={Colors.grey} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                console.log('Test crash button pressed');
-                Alert.alert(
-                  'Trigger Test Crash',
-                  'This will crash the app immediately. UNPLUG FROM DEBUGGER FIRST!',
-                  [
-                    {text: 'Cancel', style: 'cancel'},
-                    {
-                      text: 'Crash Now', 
-                      style: 'destructive', 
-                      onPress: () => {
-                        console.log('Executing getCrashlytics().crash()...');
-                        try {
-                          getCrashlytics().crash();
-                        } catch (e: any) {
-                          console.error('Crashlytics crash error:', e);
-                          Alert.alert('Module Error', e.message);
-                        }
-                      }
-                    },
-                  ]
-                );
-              }}>
-              <Icon name="bug" size={24} color={Colors.error || '#FF3B30'} />
-              <Text style={styles.menuItemText}>Trigger Test Crash</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
           </View>
