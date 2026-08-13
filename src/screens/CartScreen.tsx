@@ -12,6 +12,8 @@ import {
   SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
@@ -25,12 +27,18 @@ import {KEYS} from '../config/keys';
 import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {uploadReceiptToStorage} from '../services/storage';
+import {getFirestore, serverTimestamp} from '@react-native-firebase/firestore';
 
-const PAYMENT_METHODS = [
+const TOPUP_PACKAGES = [
+  { price: 30, bonus: 3 },
+  { price: 50, bonus: 6 },
+  { price: 100, bonus: 15 },
+];
+
+const BASE_PAYMENT_METHODS = [
   {
     id: 'nextdoor_balance',
     title: 'NextDoor Balance',
-    subtitle: '(RM 6.65)',
     label: 'Recommended',
     icon: 'wallet-outline',
   },
@@ -47,9 +55,17 @@ const CartScreen = ({navigation}: any) => {
     useCart();
   const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
-  const {user} = useAuthViewModel();
+  const {user, walletBalance, updateWalletBalance} = useAuthViewModel();
   const {orderMode, selectedBranch, selectedAddress} = useOrder();
   const {products, globalOptions} = useMenuViewModel();
+
+  const paymentMethods = useMemo(() => [
+    {
+      ...BASE_PAYMENT_METHODS[0],
+      subtitle: `(RM ${walletBalance !== undefined ? walletBalance.toFixed(2) : '0.00'})`,
+    },
+    BASE_PAYMENT_METHODS[1],
+  ], [walletBalance]);
 
   const crossSellItems = useMemo(() => {
     // Only pick items not already in the cart, max 4
@@ -62,14 +78,170 @@ const CartScreen = ({navigation}: any) => {
   const [needPaperBag, setNeedPaperBag] = useState(false);
 
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[0]); // Default NextDoor Balance
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState('nextdoor_balance');
+  const selectedPayment = useMemo(() => {
+    return paymentMethods.find(m => m.id === selectedPaymentMethodId) || paymentMethods[0];
+  }, [paymentMethods, selectedPaymentMethodId]);
 
   const [qrModalVisible, setQrModalVisible] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Top Up States
+  const [topupModalVisible, setTopupModalVisible] = useState(false);
+  const [selectedPackageIndex, setSelectedPackageIndex] = useState<number>(0);
+  const [selectedTopupPaymentMethod, setSelectedTopupPaymentMethod] = useState<'fiuu' | 'manual'>('fiuu');
+  const [topupQrModalVisible, setTopupQrModalVisible] = useState(false);
+  const [isTopupUploading, setIsTopupUploading] = useState(false);
+
   const subtotal = totalPrice; // Assuming totalPrice in cart doesn't include SST for this calculation
   const grandTotal = subtotal; // Assuming display price is inclusive of SST for simplicity, or we add it. The screenshot shows Amount RM 6.80, Subtotal RM 6.80, Grand Total RM 6.80, and 6% SST (RM 0.38). This implies the base price is inclusive of SST.
   const pointsEarned = Math.floor(grandTotal);
+
+  const handleTopup = (packageIndex: number) => {
+    const pkg = TOPUP_PACKAGES[packageIndex];
+    if (!pkg) return;
+
+    setTopupModalVisible(false);
+
+    if (!user) {
+      return;
+    }
+
+    const amount = pkg.price;
+    const totalCredit = pkg.price + pkg.bonus;
+
+    const paymentDetails = {
+      mp_username: KEYS.FIUU.USERNAME,
+      mp_password: KEYS.FIUU.PASSWORD,
+      mp_merchant_ID: KEYS.FIUU.MERCHANT_ID,
+      mp_app_name: KEYS.FIUU.APP_NAME || 'NextDoor',
+      mp_verification_key: KEYS.FIUU.VERIFICATION_KEY,
+      mp_amount: amount.toFixed(2),
+      mp_order_ID: `TOPUP_${Date.now()}`,
+      mp_currency: 'MYR',
+      mp_country: 'MY',
+      mp_channel: 'multi',
+      mp_bill_description: `Wallet Top-Up - RM${amount.toFixed(0)}`,
+      mp_bill_name: user?.displayName || 'Guest User',
+      mp_bill_email: user?.email || 'guest@example.com',
+      mp_bill_mobile: user?.phoneNumber || '+60123456789',
+      mp_closebutton_display: true,
+    };
+
+    setTimeout(() => {
+      try {
+        molpay.startMolpay(paymentDetails, async (data: any) => {
+          try {
+            let result;
+            if (typeof data === 'string') {
+              try {
+                result = JSON.parse(data);
+              } catch (e) {
+                result = {status_code: data};
+              }
+            } else {
+              result = data;
+            }
+
+            if (!result) {
+              console.log('No payment data received from SDK');
+              return;
+            }
+
+            if (result.status_code === '00') {
+              // Payment Success
+              await updateWalletBalance(totalCredit);
+              Alert.alert(
+                'Success',
+                `Successfully topped up RM ${totalCredit.toFixed(
+                  2,
+                )} (including bonus) to your wallet.`,
+              );
+            } else if (result.status_code === '11') {
+              Alert.alert('Failed', 'Top-up payment failed or was cancelled.');
+            } else if (result.status_code === '22') {
+              Alert.alert('Pending', 'Top-up payment is pending.');
+            } else {
+              console.log('Payment status unknown:', result.status_code);
+            }
+          } catch (e) {
+            console.error('Error parsing payment result:', e);
+            Alert.alert(
+              'Error',
+              'An error occurred while processing the payment result.',
+            );
+          }
+        });
+      } catch (error) {
+        console.error('Molpay SDK execution error:', error);
+        Alert.alert(
+          'System Error',
+          'Could not open the payment gateway. Please try again.',
+        );
+      }
+    }, 400);
+  };
+
+  const handleConfirmTopupPayment = () => {
+    setTopupModalVisible(false);
+    if (selectedTopupPaymentMethod === 'fiuu') {
+      handleTopup(selectedPackageIndex);
+    } else {
+      setTopupQrModalVisible(true);
+    }
+  };
+
+  const handleTopupReceiptUpload = async () => {
+    if (!user) {
+      Alert.alert('Error', 'Please log in to proceed.');
+      return;
+    }
+
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+      });
+
+      if (result.didCancel || !result.assets || result.assets.length === 0) {
+        return; // User cancelled
+      }
+
+      const asset = result.assets[0];
+      if (!asset.uri) {
+        Alert.alert('Error', 'Could not get image URI');
+        return;
+      }
+
+      setIsTopupUploading(true);
+
+      // Upload to Firebase Storage
+      const receiptUrl = await uploadReceiptToStorage(user.uid, asset.uri);
+
+      // Create manual topup request in Firestore
+      await getFirestore().collection('topups').add({
+        userId: user.uid,
+        amount: TOPUP_PACKAGES[selectedPackageIndex].price,
+        bonus: TOPUP_PACKAGES[selectedPackageIndex].bonus,
+        totalCredit: TOPUP_PACKAGES[selectedPackageIndex].price + TOPUP_PACKAGES[selectedPackageIndex].bonus,
+        paymentMethod: 'manual_transfer',
+        receiptUrl: receiptUrl,
+        status: 'pending_verification',
+        createdAt: serverTimestamp(),
+      });
+
+      setTopupQrModalVisible(false);
+      Alert.alert(
+        'Success',
+        'Top-up receipt submitted successfully! Your balance will be credited once verified.',
+      );
+    } catch (e) {
+      console.error('Error handling top-up receipt upload:', e);
+      Alert.alert('Error', 'Could not submit your receipt. Please try again.');
+    } finally {
+      setIsTopupUploading(false);
+    }
+  };
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -277,6 +449,133 @@ const CartScreen = ({navigation}: any) => {
     </Modal>
   );
 
+  const renderTopupModal = () => (
+    <Modal
+      visible={topupModalVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setTopupModalVisible(false)}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Top Up Packages</Text>
+              <Text style={styles.modalSubtitle}>Select a package to top up</Text>
+
+              <View style={styles.packagesContainer}>
+                {TOPUP_PACKAGES.map((pkg, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.packageButton,
+                      selectedPackageIndex === index && styles.packageButtonSelected,
+                    ]}
+                    onPress={() => setSelectedPackageIndex(index)}>
+                    <Text style={[
+                      styles.packagePrice,
+                      selectedPackageIndex === index && { color: Colors.primary },
+                    ]}>RM {pkg.price}</Text>
+                    <View style={styles.packageBonusBadge}>
+                      <Text style={styles.packageBonusText}>+ RM {pkg.bonus} Bonus</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.sectionTitle, { alignSelf: 'flex-start', paddingHorizontal: 0 }]}>Select Payment Method</Text>
+              <View style={styles.paymentMethodsContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.paymentMethodOption,
+                    selectedTopupPaymentMethod === 'fiuu' && styles.paymentMethodOptionSelected,
+                  ]}
+                  onPress={() => setSelectedTopupPaymentMethod('fiuu')}>
+                  <Icon
+                    name={selectedTopupPaymentMethod === 'fiuu' ? 'radiobox-marked' : 'radiobox-blank'}
+                    size={20}
+                    color={selectedTopupPaymentMethod === 'fiuu' ? Colors.primary : Colors.grey}
+                  />
+                  <Text style={styles.paymentMethodText}>Online Payment (Fiuu)</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.paymentMethodOption,
+                    selectedTopupPaymentMethod === 'manual' && styles.paymentMethodOptionSelected,
+                  ]}
+                  onPress={() => setSelectedTopupPaymentMethod('manual')}>
+                  <Icon
+                    name={selectedTopupPaymentMethod === 'manual' ? 'radiobox-marked' : 'radiobox-blank'}
+                    size={20}
+                    color={selectedTopupPaymentMethod === 'manual' ? Colors.primary : Colors.grey}
+                  />
+                  <Text style={styles.paymentMethodText}>Manual Transfer (TNG QR)</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setTopupModalVisible(false)}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={handleConfirmTopupPayment}>
+                  <Text style={styles.confirmButtonText}>
+                    {selectedTopupPaymentMethod === 'fiuu' ? 'Pay' : 'Continue'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+
+  const renderTopupQrModal = () => (
+    <Modal
+      visible={topupQrModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setTopupQrModalVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setTopupQrModalVisible(false)}>
+              <Icon name="close" size={24} color={Colors.primary} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Scan to Top Up</Text>
+            <View style={{width: 24}} />
+          </View>
+
+          <Text style={styles.qrInstructions}>
+            Please scan the QR code to transfer RM {TOPUP_PACKAGES[selectedPackageIndex]?.price.toFixed(2)} via Touch 'n Go, then upload your receipt below.
+          </Text>
+
+          <View style={styles.qrContainer}>
+            <Image
+              source={{
+                uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
+              }}
+              style={styles.qrImage}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.uploadBtn, isTopupUploading && styles.uploadBtnDisabled]}
+            onPress={handleTopupReceiptUpload}
+            disabled={isTopupUploading}>
+            <Text style={styles.uploadBtnText}>
+              {isTopupUploading ? 'Uploading...' : 'Upload Receipt'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderPaymentModal = () => (
     <Modal
       visible={paymentModalVisible}
@@ -294,20 +593,20 @@ const CartScreen = ({navigation}: any) => {
           </View>
 
           <ScrollView>
-            {PAYMENT_METHODS.map(method => (
+            {paymentMethods.map(method => (
               <TouchableOpacity
                 key={method.id}
                 style={styles.paymentMethodRow}
-                onPress={() => setSelectedPayment(method)}>
+                onPress={() => setSelectedPaymentMethodId(method.id)}>
                 <Icon
                   name={
-                    selectedPayment.id === method.id
+                    selectedPaymentMethodId === method.id
                       ? 'check-circle'
                       : 'circle-outline'
                   }
                   size={24}
                   color={
-                    selectedPayment.id === method.id
+                    selectedPaymentMethodId === method.id
                       ? Colors.primary
                       : Colors.grey
                   }
@@ -340,7 +639,12 @@ const CartScreen = ({navigation}: any) => {
                   )}
                 </View>
                 {method.id === 'nextdoor_balance' && (
-                  <TouchableOpacity style={styles.topUpBtnModal}>
+                  <TouchableOpacity
+                    style={styles.topUpBtnModal}
+                    onPress={() => {
+                      setPaymentModalVisible(false);
+                      setTopupModalVisible(true);
+                    }}>
                     <Text style={styles.topUpBtnTextModal}>+ Top Up</Text>
                   </TouchableOpacity>
                 )}
@@ -679,6 +983,8 @@ const CartScreen = ({navigation}: any) => {
 
       {renderPaymentModal()}
       {renderQrModal()}
+      {renderTopupModal()}
+      {renderTopupQrModal()}
     </SafeAreaView>
   );
 };
@@ -1095,6 +1401,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
   },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+  },
   paymentMethodRow: {
     flexDirection: 'row',
     padding: Spacing.lg,
@@ -1156,6 +1467,93 @@ const styles = StyleSheet.create({
   confirmBtnText: {
     color: Colors.white,
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  packagesContainer: {
+    width: '100%',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  packageButton: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.backgroundLight,
+  },
+  packagePrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },
+  packageBonusBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  packageBonusText: {
+    color: '#2E7D32',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  packageButtonSelected: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+    backgroundColor: Colors.primary + '10',
+  },
+  paymentMethodsContainer: {
+    width: '100%',
+    marginVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  paymentMethodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.backgroundLight,
+    gap: Spacing.md,
+  },
+  paymentMethodOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+  },
+  paymentMethodText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: Spacing.md,
+  },
+  modalButton: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: Colors.backgroundLight,
+  },
+  cancelButtonText: {
+    color: Colors.textSecondary,
+    fontWeight: 'bold',
+  },
+  confirmButton: {
+    backgroundColor: Colors.primary,
+  },
+  confirmButtonText: {
+    color: Colors.white,
     fontWeight: 'bold',
   },
 });
