@@ -117,7 +117,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
   const handleAddToCart = () => {
     // Validate mandatory option groups
     for (const group of resolvedOptions) {
-      if (group.isRequired) {
+      if (group.required || group.isRequired) {
         const selections = selectedOptions[group.id] || [];
         if (selections.length === 0) {
           Alert.alert('Selection Required', `Please choose an option for ${group.name}.`);
@@ -175,7 +175,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
                 </Text>
                 <Text style={styles.selectionType}>
                   {group.type === 'pick_one'
-                    ? (group.isRequired ? '* Pick 1' : '')
+                    ? ((group.required || group.isRequired) ? '* Pick 1' : '')
                     : `Select up to ${group.maxSelections || ''}`}
                 </Text>
               </View>
@@ -197,7 +197,7 @@ const ProductDetailScreen = ({route, navigation}: any) => {
                           opt.id,
                           group.type,
                           group.maxSelections,
-                          group.isRequired,
+                          group.required || group.isRequired,
                         )
                       }>
                       <Text
