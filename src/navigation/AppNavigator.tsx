@@ -27,6 +27,7 @@ import firestore from '@react-native-firebase/firestore';
 import {getSavedEmail} from '../utils/storage';
 import {Linking, Alert} from 'react-native';
 import LegalDetailScreen from '../screens/LegalDetailScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import {Colors} from '../theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -196,6 +197,7 @@ const AppNavigator = () => {
           <Stack.Screen name="OTP" component={OTPScreen} />
           <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
           <Stack.Screen name="LegalDetail" component={LegalDetailScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>

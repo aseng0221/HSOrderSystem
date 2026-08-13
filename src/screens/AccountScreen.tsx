@@ -190,7 +190,9 @@ const AccountScreen = ({navigation}: any) => {
               <Text style={styles.menuItemText}>Order History</Text>
               <Icon name="chevron-right" size={24} color={Colors.grey} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => navigation.navigate('EditProfile')}>
               <Icon
                 name="account-edit-outline"
                 size={24}
