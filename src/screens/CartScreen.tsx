@@ -459,73 +459,75 @@ const CartScreen = ({navigation}: any) => {
         <View style={styles.modalOverlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Top Up Packages</Text>
-              <Text style={styles.modalSubtitle}>Select a package to top up</Text>
+              <View style={styles.topupModalBody}>
+                <Text style={styles.topupModalTitle}>Top Up Packages</Text>
+                <Text style={styles.topupModalSubtitle}>Select a package to top up</Text>
 
-              <View style={styles.packagesContainer}>
-                {TOPUP_PACKAGES.map((pkg, index) => (
+                <View style={styles.packagesContainer}>
+                  {TOPUP_PACKAGES.map((pkg, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.packageButton,
+                        selectedPackageIndex === index && styles.packageButtonSelected,
+                      ]}
+                      onPress={() => setSelectedPackageIndex(index)}>
+                      <Text style={[
+                        styles.packagePrice,
+                        selectedPackageIndex === index && { color: Colors.primary },
+                      ]}>RM {pkg.price}</Text>
+                      <View style={styles.packageBonusBadge}>
+                        <Text style={styles.packageBonusText}>+ RM {pkg.bonus} Bonus</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.topupSectionTitle}>Select Payment Method</Text>
+                <View style={styles.paymentMethodsContainer}>
                   <TouchableOpacity
-                    key={index}
                     style={[
-                      styles.packageButton,
-                      selectedPackageIndex === index && styles.packageButtonSelected,
+                      styles.paymentMethodOption,
+                      selectedTopupPaymentMethod === 'fiuu' && styles.paymentMethodOptionSelected,
                     ]}
-                    onPress={() => setSelectedPackageIndex(index)}>
-                    <Text style={[
-                      styles.packagePrice,
-                      selectedPackageIndex === index && { color: Colors.primary },
-                    ]}>RM {pkg.price}</Text>
-                    <View style={styles.packageBonusBadge}>
-                      <Text style={styles.packageBonusText}>+ RM {pkg.bonus} Bonus</Text>
-                    </View>
+                    onPress={() => setSelectedTopupPaymentMethod('fiuu')}>
+                    <Icon
+                      name={selectedTopupPaymentMethod === 'fiuu' ? 'radiobox-marked' : 'radiobox-blank'}
+                      size={20}
+                      color={selectedTopupPaymentMethod === 'fiuu' ? Colors.primary : Colors.grey}
+                    />
+                    <Text style={styles.paymentMethodText}>Online Payment (Fiuu)</Text>
                   </TouchableOpacity>
-                ))}
-              </View>
 
-              <Text style={[styles.sectionTitle, { alignSelf: 'flex-start', paddingHorizontal: 0 }]}>Select Payment Method</Text>
-              <View style={styles.paymentMethodsContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.paymentMethodOption,
-                    selectedTopupPaymentMethod === 'fiuu' && styles.paymentMethodOptionSelected,
-                  ]}
-                  onPress={() => setSelectedTopupPaymentMethod('fiuu')}>
-                  <Icon
-                    name={selectedTopupPaymentMethod === 'fiuu' ? 'radiobox-marked' : 'radiobox-blank'}
-                    size={20}
-                    color={selectedTopupPaymentMethod === 'fiuu' ? Colors.primary : Colors.grey}
-                  />
-                  <Text style={styles.paymentMethodText}>Online Payment (Fiuu)</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.paymentMethodOption,
+                      selectedTopupPaymentMethod === 'manual' && styles.paymentMethodOptionSelected,
+                    ]}
+                    onPress={() => setSelectedTopupPaymentMethod('manual')}>
+                    <Icon
+                      name={selectedTopupPaymentMethod === 'manual' ? 'radiobox-marked' : 'radiobox-blank'}
+                      size={20}
+                      color={selectedTopupPaymentMethod === 'manual' ? Colors.primary : Colors.grey}
+                    />
+                    <Text style={styles.paymentMethodText}>Manual Transfer (TNG QR)</Text>
+                  </TouchableOpacity>
+                </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.paymentMethodOption,
-                    selectedTopupPaymentMethod === 'manual' && styles.paymentMethodOptionSelected,
-                  ]}
-                  onPress={() => setSelectedTopupPaymentMethod('manual')}>
-                  <Icon
-                    name={selectedTopupPaymentMethod === 'manual' ? 'radiobox-marked' : 'radiobox-blank'}
-                    size={20}
-                    color={selectedTopupPaymentMethod === 'manual' ? Colors.primary : Colors.grey}
-                  />
-                  <Text style={styles.paymentMethodText}>Manual Transfer (TNG QR)</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setTopupModalVisible(false)}>
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.confirmButton]}
-                  onPress={handleConfirmTopupPayment}>
-                  <Text style={styles.confirmButtonText}>
-                    {selectedTopupPaymentMethod === 'fiuu' ? 'Pay' : 'Continue'}
-                  </Text>
-                </TouchableOpacity>
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setTopupModalVisible(false)}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.confirmButton]}
+                    onPress={handleConfirmTopupPayment}>
+                    <Text style={styles.confirmButtonText}>
+                      {selectedTopupPaymentMethod === 'fiuu' ? 'Pay' : 'Continue'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -542,35 +544,37 @@ const CartScreen = ({navigation}: any) => {
       onRequestClose={() => setTopupQrModalVisible(false)}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setTopupQrModalVisible(false)}>
-              <Icon name="close" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-            <Text style={styles.modalTitle}>Scan to Top Up</Text>
-            <View style={{width: 24}} />
-          </View>
+          <View style={styles.topupModalBody}>
+            <View style={styles.topupModalHeader}>
+              <TouchableOpacity onPress={() => setTopupQrModalVisible(false)}>
+                <Icon name="close" size={24} color={Colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.topupModalTitle}>Scan to Top Up</Text>
+              <View style={{width: 24}} />
+            </View>
 
-          <Text style={styles.qrInstructions}>
-            Please scan the QR code to transfer RM {TOPUP_PACKAGES[selectedPackageIndex]?.price.toFixed(2)} via Touch 'n Go, then upload your receipt below.
-          </Text>
-
-          <View style={styles.qrContainer}>
-            <Image
-              source={{
-                uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
-              }}
-              style={styles.qrImage}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.uploadBtn, isTopupUploading && styles.uploadBtnDisabled]}
-            onPress={handleTopupReceiptUpload}
-            disabled={isTopupUploading}>
-            <Text style={styles.uploadBtnText}>
-              {isTopupUploading ? 'Uploading...' : 'Upload Receipt'}
+            <Text style={styles.qrInstructions}>
+              Please scan the QR code to transfer RM {TOPUP_PACKAGES[selectedPackageIndex]?.price.toFixed(2)} via Touch 'n Go, then upload your receipt below.
             </Text>
-          </TouchableOpacity>
+
+            <View style={styles.qrContainer}>
+              <Image
+                source={{
+                  uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
+                }}
+                style={styles.qrImage}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.uploadBtn, isTopupUploading && styles.uploadBtnDisabled]}
+              onPress={handleTopupReceiptUpload}
+              disabled={isTopupUploading}>
+              <Text style={styles.uploadBtnText}>
+                {isTopupUploading ? 'Uploading...' : 'Upload Receipt'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -1555,6 +1559,37 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: Colors.white,
     fontWeight: 'bold',
+  },
+  topupModalBody: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+  },
+  topupModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: Spacing.lg,
+  },
+  topupModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  topupModalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+  },
+  topupSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.grey,
+    textTransform: 'uppercase',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
 });
 
