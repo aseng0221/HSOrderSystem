@@ -21,6 +21,7 @@ const ProductCard: React.FC<ProductCardProps> = ({product, onPress}) => {
         <Image
           source={{
             uri: product.image || 'https://via.placeholder.com/150',
+            cache: 'force-cache',
           }}
           style={styles.image}
           resizeMode="contain"

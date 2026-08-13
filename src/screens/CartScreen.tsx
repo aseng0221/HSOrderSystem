@@ -306,7 +306,7 @@ const CartScreen = ({navigation}: any) => {
              {crossSellItems.map(item => (
                <View key={item.id} style={styles.crossSellCard}>
                  {item.image ? (
-                   <Image source={{uri: item.image}} style={styles.crossSellImage} />
+                   <Image source={{uri: item.image, cache: 'force-cache'}} style={styles.crossSellImage} />
                  ) : (
                    <View style={styles.crossSellImage} />
                  )}

@@ -117,7 +117,10 @@ const ProductDetailScreen = ({route, navigation}: any) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <Image
-            source={{uri: product.image || 'https://via.placeholder.com/300'}}
+            source={{
+              uri: product.image || 'https://via.placeholder.com/300',
+              cache: 'force-cache',
+            }}
             style={styles.image}
             resizeMode="cover"
           />
