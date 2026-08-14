@@ -252,7 +252,7 @@ const CartScreen = ({navigation}: any) => {
     }
 
     if (selectedPayment.id === 'nextdoor_balance') {
-      handleCashPayment(); // Mocking NextDoor balance as instant
+      handleWalletPayment();
     } else if (selectedPayment.id === 'manual_transfer') {
       setQrModalVisible(true);
     } else {
@@ -312,6 +312,40 @@ const CartScreen = ({navigation}: any) => {
       );
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleWalletPayment = async () => {
+    if (walletBalance === undefined || walletBalance < grandTotal) {
+      Alert.alert(
+        'Insufficient Balance',
+        'Please top up your NextDoor Balance to proceed.',
+      );
+      return;
+    }
+
+    try {
+      await updateWalletBalance(-grandTotal, 'Order Payment');
+
+      await createOrder({
+        userId: user!.uid,
+        items: cart,
+        totalAmount: grandTotal,
+        status: 'pending',
+        orderMode: orderMode || 'pickup',
+        paymentMethod: 'nextdoor_balance',
+        paymentStatus: 'paid',
+        branchId: selectedBranch?.id || null,
+        addressId: selectedAddress?.id || null,
+      });
+
+      await addPointsForPurchase(grandTotal);
+
+      Alert.alert('Order Placed', 'Your order has been placed successfully!');
+      clearCart();
+      navigation.navigate('Home');
+    } catch (e) {
+      Alert.alert('Error', 'Could not place your order. Please try again.');
     }
   };
 

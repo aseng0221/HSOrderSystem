@@ -104,17 +104,39 @@ export const useAuthViewModel = () => {
     }
   };
 
-  const updateWalletBalance = async (amount: number) => {
+  const updateWalletBalance = async (
+    amount: number,
+    description: string = 'Topup',
+  ) => {
     if (!user) {
       return;
     }
     try {
-      await getFirestore()
-        .collection('users')
-        .doc(user.uid)
-        .update({
-          walletBalance: increment(amount),
+      const db = getFirestore();
+      const userRef = db.collection('users').doc(user.uid);
+
+      await db.runTransaction(async transaction => {
+        const doc = await transaction.get(userRef);
+        if (!doc.exists) {
+          throw new Error('User does not exist!');
+        }
+        const previousBalance = doc.data()?.walletBalance || 0;
+        const newBalance = previousBalance + amount;
+
+        transaction.update(userRef, {
+          walletBalance: newBalance,
         });
+
+        const txRef = db.collection('wallet_transactions').doc();
+        transaction.set(txRef, {
+          userId: user.uid,
+          amount: amount,
+          previousBalance: previousBalance,
+          newBalance: newBalance,
+          description: description,
+          createdAt: serverTimestamp(),
+        });
+      });
     } catch (error) {
       console.error('Error updating wallet balance:', error);
       throw error;

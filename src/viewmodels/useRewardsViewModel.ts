@@ -3,8 +3,9 @@ import {
   doc,
   onSnapshot,
   setDoc,
-  updateDoc,
-  increment,
+  collection,
+  runTransaction,
+  serverTimestamp,
 } from '@react-native-firebase/firestore';
 import {db} from '../services/firebase';
 import {useAuthViewModel} from './useAuthViewModel';
@@ -56,9 +57,29 @@ export const useRewardsViewModel = () => {
 
     try {
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        points: increment(10), // Example: 10 points for check-in
-        lastCheckInDate: new Date().getTime(),
+      await runTransaction(db, async transaction => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) {
+          throw new Error('User does not exist!');
+        }
+
+        const previousPoints = userDoc.data()?.points || 0;
+        const newPoints = previousPoints + 10;
+
+        transaction.update(userRef, {
+          points: newPoints,
+          lastCheckInDate: new Date().getTime(),
+        });
+
+        const txRef = doc(collection(db, 'points_transactions'));
+        transaction.set(txRef, {
+          userId: user.uid,
+          amount: 10,
+          previousPoints,
+          newPoints,
+          description: 'Daily Check-In',
+          createdAt: serverTimestamp(),
+        });
       });
       return true;
     } catch (error) {
@@ -79,8 +100,28 @@ export const useRewardsViewModel = () => {
 
     try {
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        points: increment(pointsEarned),
+      await runTransaction(db, async transaction => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) {
+          throw new Error('User does not exist!');
+        }
+
+        const previousPoints = userDoc.data()?.points || 0;
+        const newPoints = previousPoints + pointsEarned;
+
+        transaction.update(userRef, {
+          points: newPoints,
+        });
+
+        const txRef = doc(collection(db, 'points_transactions'));
+        transaction.set(txRef, {
+          userId: user.uid,
+          amount: pointsEarned,
+          previousPoints,
+          newPoints,
+          description: 'Order Purchase',
+          createdAt: serverTimestamp(),
+        });
       });
     } catch (error) {
       console.error('Error adding points for purchase:', error);
