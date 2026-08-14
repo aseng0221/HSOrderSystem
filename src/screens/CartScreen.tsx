@@ -53,7 +53,7 @@ const BASE_PAYMENT_METHODS = [
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, removeItem, clearCart, addItem} =
     useCart();
-  const {createOrder, updateOrderPaymentStatus} = useOrderHistoryViewModel();
+  const {createOrder, updateOrderPaymentStatus, getOrderById} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {user, walletBalance, updateWalletBalance} = useAuthViewModel();
   const {orderMode, selectedBranch, selectedAddress} = useOrder();
@@ -284,7 +284,7 @@ const CartScreen = ({navigation}: any) => {
       const receiptUrl = await uploadReceiptToStorage(user!.uid, asset.base64);
 
       // Create Order
-      await createOrder({
+      const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
         totalAmount: grandTotal,
@@ -299,11 +299,19 @@ const CartScreen = ({navigation}: any) => {
 
       setQrModalVisible(false);
       clearCart();
-      navigation.navigate('Home');
+      
       Alert.alert(
         'Success',
         'Order placed! Waiting for admin to verify your receipt.',
       );
+
+      try {
+        const freshOrder = await getOrderById(orderId);
+        navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+      } catch (err) {
+        console.error('Error navigating to order details:', err);
+        navigation.navigate('Home');
+      }
     } catch (error) {
       console.error('Error uploading receipt:', error);
       Alert.alert(
@@ -329,7 +337,7 @@ const CartScreen = ({navigation}: any) => {
       await updateWalletBalance(-grandTotal);
 
       // 2. Create Order with status 'pending', paymentMethod 'wallet', paymentStatus 'paid'
-      await createOrder({
+      const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
         totalAmount: grandTotal,
@@ -346,7 +354,14 @@ const CartScreen = ({navigation}: any) => {
 
       Alert.alert('Order Placed', 'Your order has been placed and paid successfully using NextDoor Balance!');
       clearCart();
-      navigation.navigate('Home');
+
+      try {
+        const freshOrder = await getOrderById(orderId);
+        navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+      } catch (err) {
+        console.error('Error navigating to order details:', err);
+        navigation.navigate('Home');
+      }
     } catch (e) {
       console.error('Error handling wallet payment:', e);
       Alert.alert('Error', 'Could not process wallet payment. Please try again.');
@@ -403,15 +418,43 @@ const CartScreen = ({navigation}: any) => {
             await addPointsForPurchase(grandTotal);
             Alert.alert('Success', 'Your order is confirmed!');
             clearCart();
-            navigation.navigate('Home');
+            try {
+              const freshOrder = await getOrderById(orderId);
+              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+            } catch (err) {
+              console.error('Error navigating to order details:', err);
+              navigation.navigate('Home');
+            }
           } else if (result && result.status_code === '11') {
             Alert.alert('Failed', 'Payment failed or cancelled.');
-            navigation.navigate('Home');
+            clearCart();
+            try {
+              const freshOrder = await getOrderById(orderId);
+              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+            } catch (err) {
+              console.error('Error navigating to order details:', err);
+              navigation.navigate('Home');
+            }
           } else if (result && result.status_code === '22') {
             Alert.alert('Pending', 'Payment is pending.');
-            navigation.navigate('Home');
+            clearCart();
+            try {
+              const freshOrder = await getOrderById(orderId);
+              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+            } catch (err) {
+              console.error('Error navigating to order details:', err);
+              navigation.navigate('Home');
+            }
           } else {
             Alert.alert('Payment Error', 'An issue occurred with payment.');
+            clearCart();
+            try {
+              const freshOrder = await getOrderById(orderId);
+              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+            } catch (err) {
+              console.error('Error navigating to order details:', err);
+              navigation.navigate('Home');
+            }
           }
         } catch (e) {
           console.log('Error handling payment result', e);

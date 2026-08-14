@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Colors, Spacing} from '../theme';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
@@ -16,6 +17,12 @@ import {Order} from '../types/order';
 const OrderHistoryScreen = ({navigation}: any) => {
   const {orders, loading, fetchingMore, hasMore, fetchOrders} =
     useOrderHistoryViewModel();
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders(false);
+    }, [fetchOrders])
+  );
 
   const handleLoadMore = () => {
     if (hasMore && !fetchingMore) {

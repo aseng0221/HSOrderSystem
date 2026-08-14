@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {useFocusEffect} from '@react-navigation/native';
 import {Colors, Spacing} from '../theme';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
@@ -16,7 +17,13 @@ import {Order} from '../types/order';
 
 const HomeScreen = ({navigation}: any) => {
   const {user} = useAuthViewModel();
-  const {orders} = useOrderHistoryViewModel();
+  const {orders, fetchOrders} = useOrderHistoryViewModel();
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchOrders(false);
+    }, [fetchOrders])
+  );
   const {profile, checkIn} = useRewardsViewModel();
   const [checkingIn, setCheckingIn] = useState(false);
 

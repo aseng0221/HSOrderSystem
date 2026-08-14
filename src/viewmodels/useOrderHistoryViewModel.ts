@@ -7,6 +7,7 @@ import {
   limit,
   startAfter,
   getDocs,
+  getDoc,
   addDoc,
   doc,
   updateDoc,
@@ -143,6 +144,24 @@ export const useOrderHistoryViewModel = () => {
     }
   };
 
+  const getOrderById = async (orderId: string): Promise<Order> => {
+    try {
+      const orderDocRef = doc(db, 'orders', orderId);
+      const docSnap = await getDoc(orderDocRef);
+      if (!docSnap.exists) {
+        throw new Error('Order not found');
+      }
+      const data = docSnap.data();
+      return {
+        id: orderId,
+        ...(data as Omit<Order, 'id'>),
+      } as Order;
+    } catch (error) {
+      console.error('Error fetching order by ID:', error);
+      throw error;
+    }
+  };
+
   const updateOrderPaymentStatus = async (
     orderId: string,
     paymentStatus: 'paid' | 'unpaid',
@@ -195,5 +214,6 @@ export const useOrderHistoryViewModel = () => {
     updateOrderPaymentStatus,
     cancelOrder,
     updateOrderDetails,
+    getOrderById,
   };
 };
