@@ -109,32 +109,36 @@ export const useAuthViewModel = () => {
       return;
     }
     try {
-      await getFirestore()
-        .collection('users')
-        .doc(user.uid)
-        .update({
-          walletBalance: increment(amount),
-        });
+      const userRef = getFirestore().collection('users').doc(user.uid);
+      const docSnap = await userRef.get();
+      const currentBalance = docSnap.exists ? (docSnap.data()?.walletBalance || 0) : 0;
+      const newBalance = currentBalance + amount;
+
+      await userRef.update({
+        walletBalance: newBalance,
+      });
 
       if (description) {
-        // Log to top-level collection
+        // Log to top-level collection: wallet_transaction
         await getFirestore()
-          .collection('wallet_history')
+          .collection('wallet_transaction')
           .add({
             userId: user.uid,
             amount: amount,
             description: description,
+            newBalance: newBalance,
             createdAt: serverTimestamp(),
           });
 
-        // Log to user subcollection
+        // Log to user subcollection: wallet_transaction
         await getFirestore()
           .collection('users')
           .doc(user.uid)
-          .collection('wallet_history')
+          .collection('wallet_transaction')
           .add({
             amount: amount,
             description: description,
+            newBalance: newBalance,
             createdAt: serverTimestamp(),
           });
       }
