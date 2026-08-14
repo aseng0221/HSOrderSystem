@@ -234,7 +234,7 @@ const CartScreen = ({navigation}: any) => {
       setTopupQrModalVisible(false);
       Alert.alert(
         'Success',
-        'Top-up receipt submitted successfully! Your balance will be credited once verified.',
+        'Top-up receipt submitted successfully! Please wait for an admin or cashier to complete the verification. Once verified, you can use your wallet balance to pay.',
       );
     } catch (e) {
       console.error('Error handling top-up receipt upload:', e);
@@ -252,7 +252,7 @@ const CartScreen = ({navigation}: any) => {
     }
 
     if (selectedPayment.id === 'nextdoor_balance') {
-      handleCashPayment(); // Mocking NextDoor balance as instant
+      handleWalletPayment();
     } else if (selectedPayment.id === 'manual_transfer') {
       setQrModalVisible(true);
     } else {
@@ -315,27 +315,41 @@ const CartScreen = ({navigation}: any) => {
     }
   };
 
-  const handleCashPayment = async () => {
+  const handleWalletPayment = async () => {
+    if (walletBalance === undefined || walletBalance < grandTotal) {
+      Alert.alert(
+        'Insufficient Balance',
+        `Your NextDoor Balance (RM ${walletBalance !== undefined ? walletBalance.toFixed(2) : '0.00'}) is insufficient to pay for this order (RM ${grandTotal.toFixed(2)}). Please top up first.`,
+      );
+      return;
+    }
+
     try {
+      // 1. Deduct wallet balance
+      await updateWalletBalance(-grandTotal);
+
+      // 2. Create Order with status 'pending', paymentMethod 'wallet', paymentStatus 'paid'
       await createOrder({
         userId: user!.uid,
         items: cart,
         totalAmount: grandTotal,
         status: 'pending',
         orderMode: orderMode || 'pickup',
-        paymentMethod: 'cash',
-        paymentStatus: 'unpaid',
+        paymentMethod: 'wallet',
+        paymentStatus: 'paid',
         branchId: selectedBranch?.id || null,
         addressId: selectedAddress?.id || null,
       });
 
+      // 3. Add points
       await addPointsForPurchase(grandTotal);
 
-      Alert.alert('Order Placed', 'Your order has been placed successfully!');
+      Alert.alert('Order Placed', 'Your order has been placed and paid successfully using NextDoor Balance!');
       clearCart();
       navigation.navigate('Home');
     } catch (e) {
-      Alert.alert('Error', 'Could not place your order. Please try again.');
+      console.error('Error handling wallet payment:', e);
+      Alert.alert('Error', 'Could not process wallet payment. Please try again.');
     }
   };
 

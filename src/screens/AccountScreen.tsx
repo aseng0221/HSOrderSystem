@@ -212,7 +212,7 @@ const AccountScreen = ({navigation}: any) => {
       setQrModalVisible(false);
       Alert.alert(
         'Success',
-        'Top-up receipt submitted successfully! Your balance will be credited once verified.',
+        'Top-up receipt submitted successfully! Please wait for an admin or cashier to complete the verification. Once verified, you can use your wallet balance to pay.',
       );
     } catch (e) {
       console.error('Error handling top-up receipt upload:', e);

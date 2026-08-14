@@ -23,7 +23,7 @@ export interface Order {
     | 'cancelled';
   createdAt: number; // timestamp
   orderMode: 'pickup' | 'delivery';
-  paymentMethod: 'cash' | 'online' | 'manual_transfer';
+  paymentMethod: 'cash' | 'online' | 'manual_transfer' | 'wallet';
   paymentStatus: 'unpaid' | 'paid';
   branchId?: string | null;
   addressId?: string | null;
