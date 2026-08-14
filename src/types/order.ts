@@ -27,4 +27,5 @@ export interface Order {
   branchId?: string | null;
   addressId?: string | null;
   receiptUrl?: string | null;
+  pointsAwarded?: boolean;
 }

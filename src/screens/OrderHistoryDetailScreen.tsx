@@ -143,7 +143,6 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
             paymentMethod: 'online',
             status: 'preparing',
           });
-          await addPointsForPurchase(order.totalAmount);
           Alert.alert(
             'Success',
             'Payment successful! Your order is now confirmed.',
@@ -180,8 +179,7 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
         status: 'preparing',
       });
 
-      // 3. Add points
-      await addPointsForPurchase(order.totalAmount);
+
 
       Alert.alert('Success', 'Payment successful using NextDoor Balance!');
       navigation.goBack();

@@ -5,6 +5,9 @@ import {
   setDoc,
   updateDoc,
   increment,
+  collection,
+  addDoc,
+  serverTimestamp,
 } from '@react-native-firebase/firestore';
 import {db} from '../services/firebase';
 import {useAuthViewModel} from './useAuthViewModel';
@@ -60,6 +63,15 @@ export const useRewardsViewModel = () => {
         points: increment(10), // Example: 10 points for check-in
         lastCheckInDate: new Date().getTime(),
       });
+
+      // Add points history record
+      const historyRef = collection(db, 'users', user.uid, 'point_history');
+      await addDoc(historyRef, {
+        amount: 10,
+        description: 'daily check-in',
+        createdAt: serverTimestamp(),
+      });
+
       return true;
     } catch (error) {
       console.error('Error during check-in:', error);

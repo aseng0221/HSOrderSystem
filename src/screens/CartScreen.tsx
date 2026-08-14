@@ -349,8 +349,6 @@ const CartScreen = ({navigation}: any) => {
         addressId: selectedAddress?.id || null,
       });
 
-      // 3. Add points
-      await addPointsForPurchase(grandTotal);
 
       Alert.alert('Order Placed', 'Your order has been placed and paid successfully using NextDoor Balance!');
       clearCart();
@@ -418,7 +416,6 @@ const CartScreen = ({navigation}: any) => {
               paymentStatus: 'paid',
               status: 'preparing',
             });
-            await addPointsForPurchase(grandTotal);
             Alert.alert('Success', 'Your order is confirmed!');
             clearCart();
             try {

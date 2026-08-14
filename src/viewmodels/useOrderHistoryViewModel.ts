@@ -11,6 +11,7 @@ import {
   addDoc,
   doc,
   updateDoc,
+  increment,
   serverTimestamp,
   QueryDocumentSnapshot,
   DocumentData,
@@ -89,6 +90,37 @@ export const useOrderHistoryViewModel = () => {
             }
           }
 
+          if (status === 'completed' && !data.pointsAwarded) {
+            const pointsEarned = Math.floor(data.totalAmount);
+            if (pointsEarned > 0) {
+              try {
+                // 1. Award points to the user's profile
+                const userRef = doc(db, 'users', data.userId);
+                await updateDoc(userRef, {
+                  points: increment(pointsEarned),
+                });
+
+                // 2. Add points record to point_history
+                const historyRef = collection(db, 'users', data.userId, 'point_history');
+                await addDoc(historyRef, {
+                  amount: pointsEarned,
+                  description: `Order Purchase (Order ID: ${orderId})`,
+                  createdAt: serverTimestamp(),
+                });
+
+                // 3. Mark points as awarded on the order
+                const orderDocRef = doc(db, 'orders', orderId);
+                await updateDoc(orderDocRef, {
+                  pointsAwarded: true,
+                });
+
+                data.pointsAwarded = true;
+              } catch (e) {
+                console.error(`Failed to award points for completed order ${orderId}:`, e);
+              }
+            }
+          }
+
           fetchedOrders.push({
             id: orderId,
             ...(data as Omit<Order, 'id'>),
@@ -152,6 +184,36 @@ export const useOrderHistoryViewModel = () => {
         throw new Error('Order not found');
       }
       const data = docSnap.data();
+      if (data && data.status === 'completed' && !data.pointsAwarded) {
+        const pointsEarned = Math.floor(data.totalAmount);
+        if (pointsEarned > 0) {
+          try {
+            // 1. Award points to user profile
+            const userRef = doc(db, 'users', data.userId);
+            await updateDoc(userRef, {
+              points: increment(pointsEarned),
+            });
+
+            // 2. Add points record to point_history
+            const historyRef = collection(db, 'users', data.userId, 'point_history');
+            await addDoc(historyRef, {
+              amount: pointsEarned,
+              description: `Order Purchase (Order ID: ${orderId})`,
+              createdAt: serverTimestamp(),
+            });
+
+            // 3. Mark points as awarded on the order
+            await updateDoc(orderDocRef, {
+              pointsAwarded: true,
+            });
+
+            data.pointsAwarded = true;
+          } catch (e) {
+            console.error(`Failed to award points in getOrderById:`, e);
+          }
+        }
+      }
+
       return {
         id: orderId,
         ...(data as Omit<Order, 'id'>),
