@@ -117,6 +117,17 @@ export const useAuthViewModel = () => {
         });
 
       if (description) {
+        // Log to top-level collection
+        await getFirestore()
+          .collection('wallet_history')
+          .add({
+            userId: user.uid,
+            amount: amount,
+            description: description,
+            createdAt: serverTimestamp(),
+          });
+
+        // Log to user subcollection
         await getFirestore()
           .collection('users')
           .doc(user.uid)
