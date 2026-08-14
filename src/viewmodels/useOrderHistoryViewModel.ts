@@ -170,6 +170,21 @@ export const useOrderHistoryViewModel = () => {
     }
   };
 
+  const updateOrderDetails = async (
+    orderId: string,
+    updates: Partial<Omit<Order, 'id' | 'createdAt'>>,
+  ) => {
+    try {
+      const orderDocRef = doc(db, 'orders', orderId);
+      await updateDoc(orderDocRef, updates);
+      // Refresh the orders list to reflect the update
+      fetchOrders(false);
+    } catch (error) {
+      console.error('Error updating order details:', error);
+      throw error;
+    }
+  };
+
   return {
     orders,
     loading,
@@ -179,5 +194,6 @@ export const useOrderHistoryViewModel = () => {
     createOrder,
     updateOrderPaymentStatus,
     cancelOrder,
+    updateOrderDetails,
   };
 };

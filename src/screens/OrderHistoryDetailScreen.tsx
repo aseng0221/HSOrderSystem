@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
+  Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -17,13 +21,20 @@ import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import {useOrderHistoryViewModel} from '../viewmodels/useOrderHistoryViewModel';
 import {useRewardsViewModel} from '../viewmodels/useRewardsViewModel';
 import {useMenuViewModel} from '../viewmodels/useMenuViewModel';
+import {launchImageLibrary} from 'react-native-image-picker';
+import {uploadReceiptToStorage} from '../services/storage';
 
 const OrderHistoryDetailScreen = ({route, navigation}: any) => {
   const {order} = route.params as {order: Order};
-  const {user} = useAuthViewModel();
-  const {updateOrderPaymentStatus, cancelOrder} = useOrderHistoryViewModel();
+  const {user, walletBalance, updateWalletBalance} = useAuthViewModel();
+  const {updateOrderPaymentStatus, cancelOrder, updateOrderDetails} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {globalOptions} = useMenuViewModel();
+
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'fiuu' | 'manual' | 'wallet'>('fiuu');
+  const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const isExpired = React.useMemo(() => {
     if (order.paymentStatus === 'unpaid' && order.status !== 'cancelled' && order.createdAt) {
@@ -83,7 +94,7 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
     </View>
   );
 
-  const handleRetryPayment = () => {
+  const handleFiuuRetry = () => {
     if (!user) {
       Alert.alert('Login Required', 'Please login to proceed with payment.');
       return;
@@ -127,7 +138,10 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
 
         if (result.status_code === '00') {
           // Payment Success
-          await updateOrderPaymentStatus(order.id, 'paid');
+          await updateOrderDetails(order.id, {
+            paymentStatus: 'paid',
+            paymentMethod: 'online',
+          });
           await addPointsForPurchase(order.totalAmount);
           Alert.alert(
             'Success',
@@ -144,6 +158,227 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
       }
     });
   };
+
+  const handleWalletRetry = async () => {
+    if (walletBalance === undefined || walletBalance < order.totalAmount) {
+      Alert.alert(
+        'Insufficient Balance',
+        `Your NextDoor Balance (RM ${walletBalance !== undefined ? walletBalance.toFixed(2) : '0.00'}) is insufficient to pay for this order (RM ${order.totalAmount.toFixed(2)}). Please top up first.`,
+      );
+      return;
+    }
+
+    try {
+      // 1. Deduct wallet balance
+      await updateWalletBalance(-order.totalAmount);
+
+      // 2. Update order details in Firestore
+      await updateOrderDetails(order.id, {
+        paymentMethod: 'wallet',
+        paymentStatus: 'paid',
+      });
+
+      // 3. Add points
+      await addPointsForPurchase(order.totalAmount);
+
+      Alert.alert('Success', 'Payment successful using NextDoor Balance!');
+      navigation.goBack();
+    } catch (e) {
+      console.error('Error handling wallet payment:', e);
+      Alert.alert('Error', 'Could not process wallet payment. Please try again.');
+    }
+  };
+
+  const handleReceiptUpload = async () => {
+    if (!user) return;
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        includeBase64: true,
+      });
+
+      if (result.didCancel || !result.assets || result.assets.length === 0) {
+        return; // User cancelled
+      }
+
+      const asset = result.assets[0];
+      if (!asset.base64) {
+        Alert.alert('Error', 'Could not get image data');
+        return;
+      }
+
+      setIsUploading(true);
+
+      // Upload to Firebase Storage
+      const receiptUrl = await uploadReceiptToStorage(user.uid, asset.base64);
+
+      // Update Order
+      await updateOrderDetails(order.id, {
+        paymentMethod: 'manual_transfer',
+        receiptUrl: receiptUrl,
+        status: 'pending_verification',
+      });
+
+      setQrModalVisible(false);
+      navigation.goBack();
+      Alert.alert(
+        'Success',
+        'Top-up receipt submitted successfully! Please wait for an admin or cashier to complete the verification. Once verified, you can use your wallet balance to pay.',
+      );
+    } catch (error) {
+      console.error('Error uploading receipt:', error);
+      Alert.alert(
+        'Upload Failed',
+        'There was an issue uploading your receipt. Please try again.',
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleConfirmPayment = () => {
+    setPaymentModalVisible(false);
+    if (selectedPaymentMethod === 'fiuu') {
+      handleFiuuRetry();
+    } else if (selectedPaymentMethod === 'wallet') {
+      handleWalletRetry();
+    } else if (selectedPaymentMethod === 'manual') {
+      setQrModalVisible(true);
+    }
+  };
+
+  const handleRetryPayment = () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to proceed with payment.');
+      return;
+    }
+    setPaymentModalVisible(true);
+  };
+
+  const renderPaymentModal = () => (
+    <Modal
+      visible={paymentModalVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setPaymentModalVisible(false)}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContent}>
+              <View style={styles.topupModalBody}>
+                <Text style={styles.topupModalTitle}>Choose Payment Method</Text>
+                <Text style={styles.topupModalSubtitle}>Select how you would like to pay</Text>
+
+                <View style={styles.paymentMethodsContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.paymentMethodOption,
+                      selectedPaymentMethod === 'wallet' && styles.paymentMethodOptionSelected,
+                    ]}
+                    onPress={() => setSelectedPaymentMethod('wallet')}>
+                    <Icon
+                      name={selectedPaymentMethod === 'wallet' ? 'radiobox-marked' : 'radiobox-blank'}
+                      size={20}
+                      color={selectedPaymentMethod === 'wallet' ? Colors.primary : Colors.grey}
+                    />
+                    <Text style={styles.paymentMethodText}>
+                      NextDoor Balance (RM {walletBalance !== undefined ? walletBalance.toFixed(2) : '0.00'})
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.paymentMethodOption,
+                      selectedPaymentMethod === 'fiuu' && styles.paymentMethodOptionSelected,
+                    ]}
+                    onPress={() => setSelectedPaymentMethod('fiuu')}>
+                    <Icon
+                      name={selectedPaymentMethod === 'fiuu' ? 'radiobox-marked' : 'radiobox-blank'}
+                      size={20}
+                      color={selectedPaymentMethod === 'fiuu' ? Colors.primary : Colors.grey}
+                    />
+                    <Text style={styles.paymentMethodText}>Online Payment (Fiuu)</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.paymentMethodOption,
+                      selectedPaymentMethod === 'manual' && styles.paymentMethodOptionSelected,
+                    ]}
+                    onPress={() => setSelectedPaymentMethod('manual')}>
+                    <Icon
+                      name={selectedPaymentMethod === 'manual' ? 'radiobox-marked' : 'radiobox-blank'}
+                      size={20}
+                      color={selectedPaymentMethod === 'manual' ? Colors.primary : Colors.grey}
+                    />
+                    <Text style={styles.paymentMethodText}>Manual Transfer (TNG QR)</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setPaymentModalVisible(false)}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.confirmButton]}
+                    onPress={handleConfirmPayment}>
+                    <Text style={styles.confirmButtonText}>Pay Now</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
+    </Modal>
+  );
+
+  const renderQrModal = () => (
+    <Modal
+      visible={qrModalVisible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setQrModalVisible(false)}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.qrModalBody}>
+            <View style={styles.topupModalHeader}>
+              <TouchableOpacity onPress={() => setQrModalVisible(false)}>
+                <Icon name="close" size={24} color={Colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.topupModalTitle}>Scan to Pay</Text>
+              <View style={{width: 24}} />
+            </View>
+
+            <Text style={styles.qrInstructions}>
+              Please scan the QR code to transfer RM {order.totalAmount.toFixed(2)} via Touch 'n Go, then upload your receipt below.
+            </Text>
+
+            <View style={styles.qrContainer}>
+              <Image
+                source={{
+                  uri: 'https://via.placeholder.com/200x200.png?text=TNG+QR',
+                }}
+                style={styles.qrImage}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.uploadBtn, isUploading && styles.uploadBtnDisabled]}
+              onPress={handleReceiptUpload}
+              disabled={isUploading}>
+              <Text style={styles.uploadBtnText}>
+                {isUploading ? 'Uploading...' : 'Upload Receipt'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,9 +436,9 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
           </View>
         </View>
 
-        {order.paymentMethod === 'online' &&
-          order.paymentStatus === 'unpaid' &&
-          displayedStatus !== 'cancelled' && (
+        {order.paymentStatus === 'unpaid' &&
+          displayedStatus !== 'cancelled' &&
+          displayedStatus !== 'completed' && (
             <TouchableOpacity
               style={styles.payButton}
               onPress={handleRetryPayment}>
@@ -211,6 +446,9 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
             </TouchableOpacity>
           )}
       </ScrollView>
+
+      {renderPaymentModal()}
+      {renderQrModal()}
     </SafeAreaView>
   );
 };
@@ -340,6 +578,132 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   payButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    minHeight: '40%',
+    paddingBottom: 20,
+  },
+  topupModalBody: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+  },
+  topupModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: Spacing.lg,
+  },
+  topupModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  topupModalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.lg,
+  },
+  paymentMethodsContainer: {
+    width: '100%',
+    marginVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  paymentMethodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    backgroundColor: '#FAFAFA',
+    gap: Spacing.md,
+  },
+  paymentMethodOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+  },
+  paymentMethodText: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  modalButton: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#FAFAFA',
+  },
+  cancelButtonText: {
+    color: Colors.textSecondary,
+    fontWeight: 'bold',
+  },
+  confirmButton: {
+    backgroundColor: Colors.primary,
+  },
+  confirmButtonText: {
+    color: Colors.white,
+    fontWeight: 'bold',
+  },
+  qrModalBody: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  qrInstructions: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    padding: 10,
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  qrImage: {
+    width: 200,
+    height: 200,
+  },
+  uploadBtn: {
+    backgroundColor: Colors.primary,
+    padding: Spacing.md,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    width: '100%',
+  },
+  uploadBtnDisabled: {
+    backgroundColor: Colors.grey,
+  },
+  uploadBtnText: {
     color: Colors.white,
     fontSize: 16,
     fontWeight: 'bold',
