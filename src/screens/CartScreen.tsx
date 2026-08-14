@@ -307,7 +307,7 @@ const CartScreen = ({navigation}: any) => {
 
       try {
         const freshOrder = await getOrderById(orderId);
-        navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+        navigation.replace('OrderHistoryDetail', { order: freshOrder });
       } catch (err) {
         console.error('Error navigating to order details:', err);
         navigation.navigate('Home');
@@ -357,7 +357,7 @@ const CartScreen = ({navigation}: any) => {
 
       try {
         const freshOrder = await getOrderById(orderId);
-        navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+        navigation.replace('OrderHistoryDetail', { order: freshOrder });
       } catch (err) {
         console.error('Error navigating to order details:', err);
         navigation.navigate('Home');
@@ -423,7 +423,7 @@ const CartScreen = ({navigation}: any) => {
             clearCart();
             try {
               const freshOrder = await getOrderById(orderId);
-              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+              navigation.replace('OrderHistoryDetail', { order: freshOrder });
             } catch (err) {
               console.error('Error navigating to order details:', err);
               navigation.navigate('Home');
@@ -433,7 +433,7 @@ const CartScreen = ({navigation}: any) => {
             clearCart();
             try {
               const freshOrder = await getOrderById(orderId);
-              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+              navigation.replace('OrderHistoryDetail', { order: freshOrder });
             } catch (err) {
               console.error('Error navigating to order details:', err);
               navigation.navigate('Home');
@@ -443,7 +443,7 @@ const CartScreen = ({navigation}: any) => {
             clearCart();
             try {
               const freshOrder = await getOrderById(orderId);
-              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+              navigation.replace('OrderHistoryDetail', { order: freshOrder });
             } catch (err) {
               console.error('Error navigating to order details:', err);
               navigation.navigate('Home');
@@ -453,7 +453,7 @@ const CartScreen = ({navigation}: any) => {
             clearCart();
             try {
               const freshOrder = await getOrderById(orderId);
-              navigation.navigate('OrderHistoryDetail', { order: freshOrder });
+              navigation.replace('OrderHistoryDetail', { order: freshOrder });
             } catch (err) {
               console.error('Error navigating to order details:', err);
               navigation.navigate('Home');
