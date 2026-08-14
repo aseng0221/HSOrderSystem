@@ -53,7 +53,7 @@ const BASE_PAYMENT_METHODS = [
 const CartScreen = ({navigation}: any) => {
   const {cart, totalPrice, updateQuantity, removeItem, clearCart, addItem} =
     useCart();
-  const {createOrder, updateOrderPaymentStatus, getOrderById} = useOrderHistoryViewModel();
+  const {createOrder, updateOrderPaymentStatus, getOrderById, updateOrderDetails} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {user, walletBalance, updateWalletBalance} = useAuthViewModel();
   const {orderMode, selectedBranch, selectedAddress} = useOrder();
@@ -336,12 +336,12 @@ const CartScreen = ({navigation}: any) => {
       // 1. Deduct wallet balance
       await updateWalletBalance(-grandTotal);
 
-      // 2. Create Order with status 'pending', paymentMethod 'wallet', paymentStatus 'paid'
+      // 2. Create Order with status 'preparing', paymentMethod 'wallet', paymentStatus 'paid'
       const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
         totalAmount: grandTotal,
-        status: 'pending',
+        status: 'preparing',
         orderMode: orderMode || 'pickup',
         paymentMethod: 'wallet',
         paymentStatus: 'paid',
@@ -414,7 +414,10 @@ const CartScreen = ({navigation}: any) => {
           }
 
           if (result && result.status_code === '00') {
-            await updateOrderPaymentStatus(orderId, 'paid');
+            await updateOrderDetails(orderId, {
+              paymentStatus: 'paid',
+              status: 'preparing',
+            });
             await addPointsForPurchase(grandTotal);
             Alert.alert('Success', 'Your order is confirmed!');
             clearCart();

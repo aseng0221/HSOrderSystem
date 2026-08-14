@@ -141,6 +141,7 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
           await updateOrderDetails(order.id, {
             paymentStatus: 'paid',
             paymentMethod: 'online',
+            status: 'preparing',
           });
           await addPointsForPurchase(order.totalAmount);
           Alert.alert(
@@ -176,6 +177,7 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
       await updateOrderDetails(order.id, {
         paymentMethod: 'wallet',
         paymentStatus: 'paid',
+        status: 'preparing',
       });
 
       // 3. Add points
