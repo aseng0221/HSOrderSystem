@@ -16,7 +16,6 @@ export interface Order {
   status:
     | 'pending'
     | 'pending_verification'
-    | 'processing'
     | 'preparing'
     | 'ready_to_pickup'
     | 'completed'
