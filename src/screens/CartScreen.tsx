@@ -150,7 +150,7 @@ const CartScreen = ({navigation}: any) => {
 
             if (result.status_code === '00') {
               // Payment Success
-              await updateWalletBalance(totalCredit);
+              await updateWalletBalance(totalCredit, `E-Wallet Top-up (Online Payment: RM ${amount.toFixed(2)})`);
               Alert.alert(
                 'Success',
                 `Successfully topped up RM ${totalCredit.toFixed(
@@ -333,10 +333,7 @@ const CartScreen = ({navigation}: any) => {
     }
 
     try {
-      // 1. Deduct wallet balance
-      await updateWalletBalance(-grandTotal);
-
-      // 2. Create Order with status 'preparing', paymentMethod 'wallet', paymentStatus 'paid'
+      // 1. Create Order with status 'preparing', paymentMethod 'wallet', paymentStatus 'paid'
       const orderId = await createOrder({
         userId: user!.uid,
         items: cart,
@@ -348,6 +345,9 @@ const CartScreen = ({navigation}: any) => {
         branchId: selectedBranch?.id || null,
         addressId: selectedAddress?.id || null,
       });
+
+      // 2. Deduct wallet balance
+      await updateWalletBalance(-grandTotal, `Order Payment (Order ID: ${orderId})`);
 
 
       Alert.alert('Order Placed', 'Your order has been placed and paid successfully using NextDoor Balance!');

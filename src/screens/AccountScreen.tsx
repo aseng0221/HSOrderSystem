@@ -127,7 +127,7 @@ const AccountScreen = ({navigation}: any) => {
 
             if (result.status_code === '00') {
               // Payment Success
-              await updateWalletBalance(totalCredit);
+              await updateWalletBalance(totalCredit, `E-Wallet Top-up (Online Payment: RM ${amount.toFixed(2)})`);
               Alert.alert(
                 'Success',
                 `Successfully topped up RM ${totalCredit.toFixed(

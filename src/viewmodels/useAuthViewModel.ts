@@ -104,7 +104,7 @@ export const useAuthViewModel = () => {
     }
   };
 
-  const updateWalletBalance = async (amount: number) => {
+  const updateWalletBalance = async (amount: number, description?: string) => {
     if (!user) {
       return;
     }
@@ -115,6 +115,18 @@ export const useAuthViewModel = () => {
         .update({
           walletBalance: increment(amount),
         });
+
+      if (description) {
+        await getFirestore()
+          .collection('users')
+          .doc(user.uid)
+          .collection('wallet_history')
+          .add({
+            amount: amount,
+            description: description,
+            createdAt: serverTimestamp(),
+          });
+      }
     } catch (error) {
       console.error('Error updating wallet balance:', error);
       throw error;

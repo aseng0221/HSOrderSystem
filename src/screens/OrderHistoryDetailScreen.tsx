@@ -170,7 +170,7 @@ const OrderHistoryDetailScreen = ({route, navigation}: any) => {
 
     try {
       // 1. Deduct wallet balance
-      await updateWalletBalance(-order.totalAmount);
+      await updateWalletBalance(-order.totalAmount, `Order Payment (Order ID: ${order.id})`);
 
       // 2. Update order details in Firestore
       await updateOrderDetails(order.id, {
