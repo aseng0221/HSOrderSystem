@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,15 @@ const OrderHistoryScreen = ({navigation}: any) => {
   const {orders, loading, fetchingMore, hasMore, fetchOrders} =
     useOrderHistoryViewModel();
 
+  const fetchOrdersRef = useRef(fetchOrders);
+  useEffect(() => {
+    fetchOrdersRef.current = fetchOrders;
+  }, [fetchOrders]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchOrders(false);
-    }, [fetchOrders])
+      fetchOrdersRef.current(false);
+    }, [])
   );
 
   const handleLoadMore = () => {

@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,15 @@ const HomeScreen = ({navigation}: any) => {
   const {user} = useAuthViewModel();
   const {orders, fetchOrders} = useOrderHistoryViewModel();
 
+  const fetchOrdersRef = useRef(fetchOrders);
+  useEffect(() => {
+    fetchOrdersRef.current = fetchOrders;
+  }, [fetchOrders]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchOrders(false);
-    }, [fetchOrders])
+      fetchOrdersRef.current(false);
+    }, [])
   );
   const {profile, checkIn} = useRewardsViewModel();
   const [checkingIn, setCheckingIn] = useState(false);
