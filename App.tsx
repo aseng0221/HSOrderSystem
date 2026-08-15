@@ -1,9 +1,11 @@
 import React, {useEffect} from 'react';
-import {StatusBar} from 'react-native';
+import {StatusBar, Alert} from 'react-native';
 import AppNavigator, {navigationRef} from './src/navigation/AppNavigator';
 import {CartProvider} from './src/context/CartContext';
 import {OrderProvider} from './src/context/OrderContext';
 import {notificationService} from './src/services/NotificationService';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
@@ -31,9 +33,60 @@ function App(): React.JSX.Element {
       notificationService.setupBackgroundTapListener(handleNavigation);
     notificationService.checkInitialNotification(handleNavigation);
 
+    // 4. Listen to user active orders transitioning to 'ready_to_pickup'
+    let unsubscribeOrders: (() => void) | undefined;
+    const unsubscribeAuth = auth().onAuthStateChanged(user => {
+      if (unsubscribeOrders) {
+        unsubscribeOrders();
+        unsubscribeOrders = undefined;
+      }
+
+      if (user) {
+        const notifiedOrderIds = new Set<string>();
+        let isFirstLoad = true;
+
+        unsubscribeOrders = firestore()
+          .collection('orders')
+          .where('userId', '==', user.uid)
+          .where('status', '==', 'ready_to_pickup')
+          .onSnapshot(
+            snapshot => {
+              if (!snapshot) return;
+
+              snapshot.docs.forEach(doc => {
+                const orderId = doc.id;
+                if (isFirstLoad) {
+                  notifiedOrderIds.add(orderId);
+                } else if (!notifiedOrderIds.has(orderId)) {
+                  notifiedOrderIds.add(orderId);
+                  const orderData = doc.data();
+                  const totalText = orderData.totalAmount
+                    ? ` (RM ${orderData.totalAmount.toFixed(2)})`
+                    : '';
+                  Alert.alert(
+                    'Order Ready! ☕️',
+                    `Your order ${orderId}${totalText} is ready for pickup at the counter!`,
+                    [{text: 'OK'}],
+                  );
+                }
+              });
+
+              isFirstLoad = false;
+            },
+            err => {
+              console.error('Error listening to active orders ready state:', err);
+            },
+          );
+      }
+    });
+
     return () => {
       unsubscribeForeground();
       unsubscribeBackground();
+      if (unsubscribeOrders) {
+        unsubscribeOrders();
+      }
+      unsubscribeAuth();
     };
   }, []);
 

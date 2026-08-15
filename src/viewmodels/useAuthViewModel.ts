@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   increment,
 } from '@react-native-firebase/firestore';
+import {notificationService} from '../services/NotificationService';
 
 export const useAuthViewModel = () => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
@@ -61,6 +62,9 @@ export const useAuthViewModel = () => {
               }
               await userRef.update(updateData);
             }
+
+            // Trigger notification permission check & token update
+            notificationService.requestUserPermission();
 
             // Listen to wallet balance updates
             unsubscribeProfile = getFirestore()

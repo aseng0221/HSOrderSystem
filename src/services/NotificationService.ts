@@ -1,5 +1,7 @@
 import {Alert, PermissionsAndroid, Platform} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 class NotificationService {
   async requestUserPermission() {
@@ -30,7 +32,16 @@ class NotificationService {
       const fcmToken = await messaging().getToken();
       if (fcmToken) {
         console.log('Your Firebase Token is:', fcmToken);
-        // In a real app, you would send this to your server
+        const currentUser = auth().currentUser;
+        if (currentUser) {
+          await firestore()
+            .collection('users')
+            .doc(currentUser.uid)
+            .update({
+              fcmToken: fcmToken,
+            });
+          console.log('Saved FCM Token to Firestore successfully');
+        }
       } else {
         console.log('Failed to check for FCM token');
       }
