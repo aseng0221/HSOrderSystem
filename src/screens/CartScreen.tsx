@@ -14,6 +14,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
@@ -500,9 +501,14 @@ const CartScreen = ({navigation}: any) => {
               style={[styles.uploadBtn, isUploading && styles.uploadBtnDisabled]}
               onPress={handleReceiptUpload}
               disabled={isUploading}>
-              <Text style={styles.uploadBtnText}>
-                {isUploading ? 'Uploading...' : 'Upload Receipt'}
-              </Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                {isUploading && (
+                  <ActivityIndicator size="small" color="#ffffff" style={{marginRight: 8}} />
+                )}
+                <Text style={styles.uploadBtnText}>
+                  {isUploading ? 'Uploading...' : 'Upload Receipt'}
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
