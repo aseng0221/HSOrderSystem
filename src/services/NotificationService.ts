@@ -23,6 +23,14 @@ class NotificationService {
 
     if (enabled) {
       console.log('Authorization status:', authStatus);
+      
+      // Allow iOS to show native notification banner in the foreground
+      await (messaging() as any).setForegroundNotificationsPresentationOptions({
+        alert: true,
+        badge: true,
+        sound: true,
+      });
+
       await this.getFcmToken();
     }
   }
@@ -53,11 +61,8 @@ class NotificationService {
   // Foreground messages
   setupForegroundListener() {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      Alert.alert(
-        remoteMessage.notification?.title || 'Notification',
-        remoteMessage.notification?.body || 'You have a new message',
-      );
+      console.log('A new FCM message arrived in foreground!', JSON.stringify(remoteMessage));
+      // No Alert.alert popup here. The native banner is shown automatically.
     });
     return unsubscribe;
   }
