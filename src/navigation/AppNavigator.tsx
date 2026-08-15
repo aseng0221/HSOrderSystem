@@ -21,6 +21,9 @@ import {useOrder, OrderMode} from '../context/OrderContext';
 import {useAuthViewModel} from '../viewmodels/useAuthViewModel';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 
+import WalletHistoryScreen from '../screens/WalletHistoryScreen';
+import WalletTransactionDetailScreen from '../screens/WalletTransactionDetailScreen';
+
 import {GiftCardScreen, RewardsScreen} from '../screens/PlaceholderScreens';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
@@ -191,6 +194,8 @@ const AppNavigator = () => {
           name="OrderHistoryDetail"
           component={OrderHistoryDetailScreen}
         />
+        <Stack.Screen name="WalletHistory" component={WalletHistoryScreen} />
+        <Stack.Screen name="WalletTransactionDetail" component={WalletTransactionDetailScreen} />
         {/* Auth Flow & Legal Modal Group */}
         <Stack.Group screenOptions={{presentation: 'modal'}}>
           <Stack.Screen name="Login" component={LoginScreen} />

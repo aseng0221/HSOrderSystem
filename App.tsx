@@ -19,9 +19,17 @@ function App(): React.JSX.Element {
       if (remoteMessage?.data?.screen) {
         // Wait for navigation container to be ready
         if (navigationRef.isReady()) {
-          navigationRef.navigate(
-            remoteMessage.data.screen as any,
-            remoteMessage.data.params,
+          let params = remoteMessage.data.params;
+          if (typeof params === 'string') {
+            try {
+              params = JSON.parse(params);
+            } catch (e) {
+              console.error('Error parsing remote message params:', e);
+            }
+          }
+          (navigationRef as any).navigate(
+            remoteMessage.data.screen,
+            params,
           );
         }
       }
@@ -35,10 +43,15 @@ function App(): React.JSX.Element {
 
     // 4. Listen to user active orders transitioning to 'ready_to_pickup'
     let unsubscribeOrders: (() => void) | undefined;
+    let unsubscribeTopups: (() => void) | undefined;
     const unsubscribeAuth = auth().onAuthStateChanged(user => {
       if (unsubscribeOrders) {
         unsubscribeOrders();
         unsubscribeOrders = undefined;
+      }
+      if (unsubscribeTopups) {
+        unsubscribeTopups();
+        unsubscribeTopups = undefined;
       }
 
       if (user) {
@@ -71,13 +84,37 @@ function App(): React.JSX.Element {
                     Alert.alert(
                       'Order Ready! ☕️',
                       `Your order ${orderId}${totalText} is ready for pickup at the counter!`,
-                      [{text: 'OK'}],
+                      [
+                        {text: 'Cancel', style: 'cancel'},
+                        {
+                          text: 'View Detail',
+                          onPress: () => {
+                            if (navigationRef.isReady()) {
+                              navigationRef.navigate('OrderHistoryDetail' as never, {
+                                order: { id: orderId, ...orderData }
+                              } as never);
+                            }
+                          }
+                        }
+                      ],
                     );
                   } else if (currentStatus === 'completed') {
                     Alert.alert(
                       'Order Completed! 🎉',
                       'Enjoy your drink! Thank you for ordering from NextDoor.',
-                      [{text: 'OK'}],
+                      [
+                        {text: 'Cancel', style: 'cancel'},
+                        {
+                          text: 'View Detail',
+                          onPress: () => {
+                            if (navigationRef.isReady()) {
+                              navigationRef.navigate('OrderHistoryDetail' as never, {
+                                order: { id: orderId, ...orderData }
+                              } as never);
+                            }
+                          }
+                        }
+                      ],
                     );
                   }
                 }
@@ -89,6 +126,77 @@ function App(): React.JSX.Element {
               console.error('Error listening to active orders ready/completed states:', err);
             },
           );
+
+        // 5. Listen to user top-ups transitioning status
+        const notifiedTopupIds = new Set<string>();
+        let isFirstTopupLoad = true;
+
+        unsubscribeTopups = firestore()
+          .collection('topups')
+          .where('userId', '==', user.uid)
+          .onSnapshot(
+            snapshot => {
+              if (!snapshot) return;
+
+              snapshot.docs.forEach(doc => {
+                const topupId = doc.id;
+                const topupData = doc.data();
+                const status = topupData.status;
+                const notifiedKey = `${topupId}_${status}`;
+
+                if (isFirstTopupLoad) {
+                  notifiedTopupIds.add(notifiedKey);
+                } else if (!notifiedTopupIds.has(notifiedKey)) {
+                  notifiedTopupIds.add(notifiedKey);
+
+                  if (status === 'approved') {
+                    Alert.alert(
+                      'Top Up Approved! 💰',
+                      `Your top-up of RM ${(topupData.amount || 0).toFixed(2)} has been verified and approved successfully.`,
+                      [
+                        {text: 'Cancel', style: 'cancel'},
+                        {
+                          text: 'View Detail',
+                          onPress: () => {
+                            if (navigationRef.isReady()) {
+                              navigationRef.navigate('WalletTransactionDetail' as never, {
+                                id: topupId,
+                                type: 'topup',
+                              } as never);
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  } else if (status === 'rejected') {
+                    Alert.alert(
+                      'Top Up Rejected ⚠️',
+                      `Your top-up receipt of RM ${(topupData.amount || 0).toFixed(2)} verification failed. Tap to view and re-upload.`,
+                      [
+                        {text: 'Cancel', style: 'cancel'},
+                        {
+                          text: 'View Detail',
+                          onPress: () => {
+                            if (navigationRef.isReady()) {
+                              navigationRef.navigate('WalletTransactionDetail' as never, {
+                                id: topupId,
+                                type: 'topup',
+                              } as never);
+                            }
+                          },
+                        },
+                      ],
+                    );
+                  }
+                }
+              });
+
+              isFirstTopupLoad = false;
+            },
+            err => {
+              console.error('Error listening to topups:', err);
+            },
+          );
       }
     });
 
@@ -97,6 +205,9 @@ function App(): React.JSX.Element {
       unsubscribeBackground();
       if (unsubscribeOrders) {
         unsubscribeOrders();
+      }
+      if (unsubscribeTopups) {
+        unsubscribeTopups();
       }
       unsubscribeAuth();
     };

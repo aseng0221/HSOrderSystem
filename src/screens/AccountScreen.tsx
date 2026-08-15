@@ -267,6 +267,13 @@ const AccountScreen = ({navigation}: any) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuItem}
+              onPress={() => navigation.navigate('WalletHistory')}>
+              <Icon name="wallet-outline" size={24} color={Colors.primary} />
+              <Text style={styles.menuItemText}>Wallet History</Text>
+              <Icon name="chevron-right" size={24} color={Colors.grey} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => navigation.navigate('EditProfile')}>
               <Icon
                 name="account-edit-outline"
