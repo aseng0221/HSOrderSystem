@@ -4,6 +4,19 @@
     "crashlytics_debug_enabled": true,
     "crashlytics_disable_auto_disabler": true
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firestore-debug.log",
+        "pubsub-debug.log"
+      ]
+    }
+  ],
   "hosting": {
     "public": "public",
     "ignore": [
