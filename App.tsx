@@ -48,33 +48,45 @@ function App(): React.JSX.Element {
         unsubscribeOrders = firestore()
           .collection('orders')
           .where('userId', '==', user.uid)
-          .where('status', '==', 'ready_to_pickup')
+          .where('status', 'in', ['ready_to_pickup', 'completed'])
           .onSnapshot(
             snapshot => {
               if (!snapshot) return;
 
               snapshot.docs.forEach(doc => {
                 const orderId = doc.id;
+                const orderData = doc.data();
+                const currentStatus = orderData.status;
+                const notifiedKey = `${orderId}_${currentStatus}`;
+
                 if (isFirstLoad) {
-                  notifiedOrderIds.add(orderId);
-                } else if (!notifiedOrderIds.has(orderId)) {
-                  notifiedOrderIds.add(orderId);
-                  const orderData = doc.data();
-                  const totalText = orderData.totalAmount
-                    ? ` (RM ${orderData.totalAmount.toFixed(2)})`
-                    : '';
-                  Alert.alert(
-                    'Order Ready! ☕️',
-                    `Your order ${orderId}${totalText} is ready for pickup at the counter!`,
-                    [{text: 'OK'}],
-                  );
+                  notifiedOrderIds.add(notifiedKey);
+                } else if (!notifiedOrderIds.has(notifiedKey)) {
+                  notifiedOrderIds.add(notifiedKey);
+
+                  if (currentStatus === 'ready_to_pickup') {
+                    const totalText = orderData.totalAmount
+                      ? ` (RM ${orderData.totalAmount.toFixed(2)})`
+                      : '';
+                    Alert.alert(
+                      'Order Ready! ☕️',
+                      `Your order ${orderId}${totalText} is ready for pickup at the counter!`,
+                      [{text: 'OK'}],
+                    );
+                  } else if (currentStatus === 'completed') {
+                    Alert.alert(
+                      'Order Completed! 🎉',
+                      'Enjoy your drink! Thank you for ordering from NextDoor.',
+                      [{text: 'OK'}],
+                    );
+                  }
                 }
               });
 
               isFirstLoad = false;
             },
             err => {
-              console.error('Error listening to active orders ready state:', err);
+              console.error('Error listening to active orders ready/completed states:', err);
             },
           );
       }
