@@ -296,12 +296,11 @@ const CartScreen = ({navigation}: any) => {
         branchId: selectedBranch?.id || null,
         addressId: selectedAddress?.id || null,
         receiptUrl: receiptUrl,
-        orderSource: 'app',
       });
 
       setQrModalVisible(false);
       clearCart();
-      
+
       Alert.alert(
         'Success',
         'Order placed! Waiting for admin to verify your receipt.',
@@ -346,7 +345,6 @@ const CartScreen = ({navigation}: any) => {
         paymentStatus: 'paid',
         branchId: selectedBranch?.id || null,
         addressId: selectedAddress?.id || null,
-        orderSource: 'app',
       });
 
       // 2. Deduct wallet balance
@@ -381,7 +379,6 @@ const CartScreen = ({navigation}: any) => {
         paymentStatus: 'unpaid',
         branchId: selectedBranch?.id || null,
         addressId: selectedAddress?.id || null,
-        orderSource: 'app',
       });
 
       const paymentDetails = {

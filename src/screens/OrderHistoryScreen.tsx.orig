@@ -54,7 +54,7 @@ const OrderHistoryScreen = ({navigation}: any) => {
         }>
         <View style={styles.orderHeader}>
           <Text style={styles.orderId}>
-            Order #{item.orderNumber ? item.orderNumber : item.id.slice(-6).toUpperCase()}
+            Order #{item.id.slice(-6).toUpperCase()}
           </Text>
           <View style={styles.statusContainer}>
             <Text
