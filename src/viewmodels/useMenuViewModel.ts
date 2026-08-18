@@ -17,6 +17,7 @@ export interface Category {
 export interface ProductOption {
   id: string;
   name: string;
+  printName?: string;
   price?: number; // Added price (e.g., +0.90)
 }
 
