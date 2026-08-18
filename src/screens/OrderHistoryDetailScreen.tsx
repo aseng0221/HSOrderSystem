@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import molpay from 'fiuu-mobile-xdk-reactnative';
+import firestore from '@react-native-firebase/firestore';
 import {Colors, Spacing} from '../theme';
 import {Order, OrderItem} from '../types/order';
 import {KEYS} from '../config/keys';
@@ -26,11 +27,34 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import {uploadReceiptToStorage} from '../services/storage';
 
 const OrderHistoryDetailScreen = ({route, navigation}: any) => {
-  const {order} = route.params as {order: Order};
+  const {order: initialOrder} = route.params as {order: Order};
+  const [order, setOrder] = useState<Order>(initialOrder);
   const {user, walletBalance, updateWalletBalance} = useAuthViewModel();
   const {updateOrderPaymentStatus, cancelOrder, updateOrderDetails} = useOrderHistoryViewModel();
   const {addPointsForPurchase} = useRewardsViewModel();
   const {globalOptions} = useMenuViewModel();
+
+  useEffect(() => {
+    const unsubscribe = firestore()
+      .collection('orders')
+      .doc(initialOrder.id)
+      .onSnapshot(
+        docSnapshot => {
+          if (docSnapshot.exists) {
+            const data = docSnapshot.data();
+            if (data) {
+              setOrder({
+                id: docSnapshot.id,
+                ...data,
+              } as Order);
+            }
+          }
+        },
+        err => console.error('Error listening to order document:', err),
+      );
+
+    return () => unsubscribe();
+  }, [initialOrder.id]);
 
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'fiuu' | 'manual' | 'wallet'>('fiuu');

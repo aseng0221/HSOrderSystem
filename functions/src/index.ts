@@ -146,19 +146,19 @@ export const onOrderCreated = functions.firestore
         if (!counterDoc.exists) {
           // Initialize for the day
           if (orderSource === 'pos') {
-            newNumber = 1000;
-            transaction.set(counterRef, { posCounter: 1000, userCounter: 2999 });
-          } else {
             newNumber = 3000;
-            transaction.set(counterRef, { posCounter: 999, userCounter: 3000 });
+            transaction.set(counterRef, { posCounter: 3000, userCounter: 999 });
+          } else {
+            newNumber = 1000;
+            transaction.set(counterRef, { posCounter: 2999, userCounter: 1000 });
           }
         } else {
           const counters = counterDoc.data() || {};
           if (orderSource === 'pos') {
-            newNumber = (counters.posCounter || 999) + 1;
+            newNumber = (counters.posCounter || 2999) + 1;
             transaction.update(counterRef, { posCounter: newNumber });
           } else {
-            newNumber = (counters.userCounter || 2999) + 1;
+            newNumber = (counters.userCounter || 999) + 1;
             transaction.update(counterRef, { userCounter: newNumber });
           }
         }
