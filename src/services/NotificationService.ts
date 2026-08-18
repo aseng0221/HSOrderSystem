@@ -2,6 +2,7 @@ import {Alert, PermissionsAndroid, Platform} from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
+import notifee, {EventType} from '@notifee/react-native';
 
 class NotificationService {
   async requestUserPermission() {
@@ -23,14 +24,6 @@ class NotificationService {
 
     if (enabled) {
       console.log('Authorization status:', authStatus);
-      
-      // Allow iOS to show native notification banner in the foreground
-      await (messaging() as any).setForegroundNotificationsPresentationOptions({
-        alert: true,
-        badge: true,
-        sound: true,
-      });
-
       await this.getFcmToken();
     }
   }
@@ -62,12 +55,28 @@ class NotificationService {
   setupForegroundListener() {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       console.log('A new FCM message arrived in foreground!', JSON.stringify(remoteMessage));
-      // No Alert.alert popup here. The native banner is shown automatically.
+      
+      // Request Notifee permissions if needed
+      await notifee.requestPermission();
+
+      // Display native banner
+      await notifee.displayNotification({
+        title: remoteMessage.notification?.title || 'NextDoor Brew',
+        body: remoteMessage.notification?.body || '',
+        data: remoteMessage.data,
+        ios: {
+          foregroundPresentationOptions: {
+            alert: true,
+            badge: true,
+            sound: true,
+          },
+        },
+      });
     });
     return unsubscribe;
   }
 
-  // Handle tap when app is in background but not quit
+  // Handle tap when app is in background but not quit (FCM)
   setupBackgroundTapListener(callback: (remoteMessage: any) => void) {
     return messaging().onNotificationOpenedApp(remoteMessage => {
       console.log(
@@ -80,7 +89,19 @@ class NotificationService {
     });
   }
 
-  // Handle tap when app was quit/killed
+  // Handle tap when app is in foreground (Notifee)
+  setupForegroundTapListener(callback: (remoteMessage: any) => void) {
+    return notifee.onForegroundEvent(({type, detail}) => {
+      if (type === EventType.PRESS && detail.notification) {
+        console.log('User pressed foreground Notifee notification:', detail.notification);
+        if (callback) {
+          callback({data: detail.notification.data});
+        }
+      }
+    });
+  }
+
+  // Handle tap when app was quit/killed (FCM)
   async checkInitialNotification(callback: (remoteMessage: any) => void) {
     const remoteMessage = await messaging().getInitialNotification();
     if (remoteMessage) {
@@ -91,6 +112,18 @@ class NotificationService {
       if (callback) {
         callback(remoteMessage);
       }
+    }
+  }
+
+  // Handle tap when app was quit/killed (Notifee)
+  async checkInitialNotifeeNotification(callback: (remoteMessage: any) => void) {
+    const initialNotification = await notifee.getInitialNotification();
+    if (initialNotification && callback) {
+      console.log(
+        'Notification caused app to open from quit state via Notifee:',
+        initialNotification.notification,
+      );
+      callback({data: initialNotification.notification.data});
     }
   }
 }

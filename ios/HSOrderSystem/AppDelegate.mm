@@ -30,24 +30,9 @@ extern "C" {
 
   // Register for Push Notifications
   [application registerForRemoteNotifications];
-  [UNUserNotificationCenter currentNotificationCenter].delegate = self;
 
   return [super application:application
       didFinishLaunchingWithOptions:launchOptions];
-}
-
-// Handle foreground notifications by showing native banners
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-       willPresentNotification:(UNNotification *)notification
-         withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
-  if (@available(iOS 14.0, *)) {
-    completionHandler(UNNotificationPresentationOptionList | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBadge);
-  } else {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    completionHandler(UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBadge);
-    #pragma clang diagnostic pop
-  }
 }
 
 - (BOOL)application:(UIApplication *)application
