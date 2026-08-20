@@ -121,3 +121,54 @@ export const onTopupStatusUpdate = functions.firestore
       return null;
     }
   });
+
+// 3. Triggered automatically when a new Order document is created
+export const onOrderCreated = functions.firestore
+  .document('orders/{orderId}')
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    const orderId = context.params.orderId;
+    const orderSource = data.orderSource || 'pos'; // default to pos for legacy
+
+    const today = new Date();
+    // Use Malaysia time (UTC+8)
+    const msOffset = 8 * 60 * 60 * 1000;
+    const localTime = new Date(today.getTime() + msOffset);
+    const dateString = localTime.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const counterRef = admin.firestore().collection('daily_order_counters').doc(dateString);
+
+    try {
+      await admin.firestore().runTransaction(async (transaction) => {
+        const counterDoc = await transaction.get(counterRef);
+
+        let newNumber;
+        if (!counterDoc.exists) {
+          // Initialize for the day
+          if (orderSource === 'pos') {
+            newNumber = 3000;
+            transaction.set(counterRef, { posCounter: 3000, userCounter: 999 });
+          } else {
+            newNumber = 1000;
+            transaction.set(counterRef, { posCounter: 2999, userCounter: 1000 });
+          }
+        } else {
+          const counters = counterDoc.data() || {};
+          if (orderSource === 'pos') {
+            newNumber = (counters.posCounter || 2999) + 1;
+            transaction.update(counterRef, { posCounter: newNumber });
+          } else {
+            newNumber = (counters.userCounter || 999) + 1;
+            transaction.update(counterRef, { userCounter: newNumber });
+          }
+        }
+
+        // Update the order doc with the generated number
+        const orderRef = admin.firestore().collection('orders').doc(orderId);
+        transaction.update(orderRef, { orderNumber: newNumber });
+      });
+      console.log(`Successfully generated orderNumber for order ${orderId}`);
+    } catch (error) {
+      console.error(`Error generating orderNumber for order ${orderId}:`, error);
+    }
+  });

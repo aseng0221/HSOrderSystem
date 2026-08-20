@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -53,6 +53,50 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
     });
     return defaults;
   });
+
+  // Helper to check if a group is for Ice Level
+  const isIceLevelGroup = (group: any) => {
+    return group.name?.toLowerCase().includes('ice');
+  };
+
+  // Helper to check if "Hot" is selected in any temperature group
+  const isHotSelected = useMemo(() => {
+    const tempGroups = resolvedOptions.filter((g: any) =>
+      g.name?.toLowerCase().includes('temp') || g.name?.toLowerCase().includes('temperature')
+    );
+    for (const group of tempGroups) {
+      const selectedIds = selectedOptions[group.id] || [];
+      const hasHot = selectedIds.some(optId => {
+        const optionChoice = group.options?.find((o: any) => o.id === optId);
+        return optionChoice?.name?.toLowerCase().includes('hot');
+      });
+      if (hasHot) {
+        return true;
+      }
+    }
+    return false;
+  }, [resolvedOptions, selectedOptions]);
+
+  const shouldHideGroup = (group: any) => {
+    return isIceLevelGroup(group) && isHotSelected;
+  };
+
+  // Automatically clear selected options for hidden groups (e.g. clear ice selection if hot is selected)
+  useEffect(() => {
+    let hasChanges = false;
+    const updated = { ...selectedOptions };
+
+    resolvedOptions.forEach((group: any) => {
+      if (shouldHideGroup(group) && selectedOptions[group.id]?.length > 0) {
+        delete updated[group.id];
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setSelectedOptions(updated);
+    }
+  }, [isHotSelected, resolvedOptions, selectedOptions]);
 
   const { unitPrice, totalPrice } = useMemo(() => {
     let basePrice = parseFloat(product.price.replace(/[^\d.]/g, ''));
@@ -117,6 +161,9 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
   const handleAddToCart = () => {
     // Validate mandatory option groups
     for (const group of resolvedOptions) {
+      if (shouldHideGroup(group)) {
+        continue;
+      }
       if (group.required || group.isRequired) {
         const selections = selectedOptions[group.id] || [];
         if (selections.length === 0) {
@@ -167,63 +214,66 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
             <Text style={styles.description}>{product.description}</Text>
           )}
 
-          {resolvedOptions.map((group: any) => (
-            <View key={group.id} style={styles.optionGroup}>
-              <View style={styles.groupHeader}>
-                <Text style={styles.groupName}>
-                  {group.name} <Icon name="information-outline" size={14} />
-                </Text>
-                <Text style={styles.selectionType}>
-                  {group.type === 'pick_one'
-                    ? ((group.required || group.isRequired) ? '* Pick 1' : '')
-                    : `Select up to ${group.maxSelections || ''}`}
-                </Text>
-              </View>
-              <View style={styles.optionsList}>
-                {group.options.map((opt: any) => {
-                  const isSelected = selectedOptions[group.id]?.includes(
-                    opt.id,
-                  );
-                  return (
-                    <TouchableOpacity
-                      key={opt.id}
-                      style={[
-                        styles.optionBtn,
-                        isSelected && styles.optionBtnActive,
-                      ]}
-                      onPress={() =>
-                        handleOptionSelect(
-                          group.id,
-                          opt.id,
-                          group.type,
-                          group.maxSelections,
-                          group.required || group.isRequired,
-                        )
-                      }>
-                      <Text
+          {resolvedOptions.map((group: any) => {
+            if (shouldHideGroup(group)) return null;
+            return (
+              <View key={group.id} style={styles.optionGroup}>
+                <View style={styles.groupHeader}>
+                  <Text style={styles.groupName}>
+                    {group.name} <Icon name="information-outline" size={14} />
+                  </Text>
+                  <Text style={styles.selectionType}>
+                    {group.type === 'pick_one'
+                      ? ((group.required || group.isRequired) ? '* Pick 1' : '')
+                      : `Select up to ${group.maxSelections || ''}`}
+                  </Text>
+                </View>
+                <View style={styles.optionsList}>
+                  {group.options.map((opt: any) => {
+                    const isSelected = selectedOptions[group.id]?.includes(
+                      opt.id,
+                    );
+                    return (
+                      <TouchableOpacity
+                        key={opt.id}
                         style={[
-                          styles.optionText,
-                          isSelected && styles.optionTextActive,
-                        ]}>
-                        {opt.name}{' '}
-                        {opt.price ? (
-                          <Text>
-                            (+RM{' '}
-                            {(typeof opt.price === 'number'
-                              ? opt.price
-                              : parseFloat(opt.price.replace(/[^\d.]/g, '')) ||
-                              0
-                            ).toFixed(2)}
-                            )
-                          </Text>
-                        ) : null}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                          styles.optionBtn,
+                          isSelected && styles.optionBtnActive,
+                        ]}
+                        onPress={() =>
+                          handleOptionSelect(
+                            group.id,
+                            opt.id,
+                            group.type,
+                            group.maxSelections,
+                            group.required || group.isRequired,
+                          )
+                        }>
+                        <Text
+                          style={[
+                            styles.optionText,
+                            isSelected && styles.optionTextActive,
+                          ]}>
+                          {opt.name}{' '}
+                          {opt.price ? (
+                            <Text>
+                              (+RM{' '}
+                              {(typeof opt.price === 'number'
+                                ? opt.price
+                                : parseFloat(opt.price.replace(/[^\d.]/g, '')) ||
+                                0
+                              ).toFixed(2)}
+                              )
+                            </Text>
+                          ) : null}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 

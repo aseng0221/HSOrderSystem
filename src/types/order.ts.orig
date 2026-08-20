@@ -28,6 +28,4 @@ export interface Order {
   addressId?: string | null;
   receiptUrl?: string | null;
   pointsAwarded?: boolean;
-  orderNumber?: number;
-  orderSource?: 'app' | 'pos';
 }
