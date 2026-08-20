@@ -32,7 +32,8 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
   const resolvedOptions = useMemo(() => {
     return (product.globalOptions || [])
       .map((id: string) => allGlobalOptions?.find((g: any) => g.id === id))
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0));
   }, [product, allGlobalOptions]);
 
   const [selectedOptions, setSelectedOptions] = useState<

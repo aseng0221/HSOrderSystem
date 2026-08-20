@@ -26,6 +26,7 @@ export interface ProductOptionGroup {
   type: 'pick_one' | 'multi_select' | 'boolean';
   maxSelections?: number;
   options: ProductOption[];
+  order?: number;
 }
 
 export interface ProductIngredient {
