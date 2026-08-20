@@ -81,15 +81,31 @@ const ProductDetailScreen = ({ route, navigation }: any) => {
     return isIceLevelGroup(group) && isHotSelected;
   };
 
-  // Automatically clear selected options for hidden groups (e.g. clear ice selection if hot is selected)
+  // Automatically clear selected options for hidden groups, and restore defaults when they become visible again
   useEffect(() => {
     let hasChanges = false;
     const updated = { ...selectedOptions };
 
     resolvedOptions.forEach((group: any) => {
-      if (shouldHideGroup(group) && selectedOptions[group.id]?.length > 0) {
-        delete updated[group.id];
-        hasChanges = true;
+      const isHidden = shouldHideGroup(group);
+      const currentSelections = selectedOptions[group.id] || [];
+
+      if (isHidden) {
+        if (currentSelections.length > 0) {
+          delete updated[group.id];
+          hasChanges = true;
+        }
+      } else {
+        if (currentSelections.length === 0) {
+          const defaultOpt = group.options?.find((opt: any) => opt.isDefault);
+          if (defaultOpt) {
+            updated[group.id] = [defaultOpt.id];
+            hasChanges = true;
+          } else if (group.options?.length > 0 && (group.required || group.isRequired)) {
+            updated[group.id] = [group.options[0].id];
+            hasChanges = true;
+          }
+        }
       }
     });
 
